@@ -63,13 +63,30 @@ jobs:
           git add .
           git stash || true
 
+      # The scheduled Crowdin pull only makes sense when the Crowdin token is
+      # actually configured in this repository. Forks/private builds without
+      # CROWDIN_PERSONAL_TOKEN would fail the whole run every two hours, so we
+      # short-circuit those runs before any API call.
+      - name: Check Crowdin token availability
+        id: crowdin-token
+        if: github.event_name != 'pull_request' && (inputs.force_pull == true || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        run: |
+          if [ -n "$CROWDIN_PERSONAL_TOKEN" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::CROWDIN_PERSONAL_TOKEN is not configured in this repository; skipping the Crowdin pull."
+          fi
+        env:
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+
       # Install Crowdin CLI for downloading translations
       - name: Install Crowdin CLI
-        if: github.event_name != 'pull_request' && (inputs.force_pull == true || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        if: github.event_name != 'pull_request' && (inputs.force_pull == true || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && steps.crowdin-token.outputs.available == 'true'
         run: npm install -g @crowdin/cli
 
       - name: Pre-translate untranslated strings
-        if: github.event_name != 'pull_request' && (inputs.force_pull == true || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        if: github.event_name != 'pull_request' && (inputs.force_pull == true || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && steps.crowdin-token.outputs.available == 'true'
         run: |
           COMMON="--config .github/crowdin-docs.yml --token $CROWDIN_PERSONAL_TOKEN --base-url https://twenty.api.crowdin.com --translate-untranslated-only --no-progress"
           echo "=== TM pre-translate (perfect matches only) ==="
@@ -82,7 +99,7 @@ jobs:
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
 
       - name: Normalize translations in Crowdin
-        if: github.event_name != 'pull_request' && (inputs.force_pull == true || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        if: github.event_name != 'pull_request' && (inputs.force_pull == true || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && steps.crowdin-token.outputs.available == 'true'
         run: npx tsx packages/twenty-utils/crowdin-normalizer/normalize-crowdin-translations.ts --project=2 --apply --rules=escaped-inline-code-tags || echo "::warning::translation normalization failed (non-blocking)"
         env:
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
@@ -91,7 +108,7 @@ jobs:
       # This avoids build timeout issues when processing all languages at once
       - name: Pull translated docs from Crowdin
         id: pull
-        if: github.event_name != 'pull_request' && (inputs.force_pull == true || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        if: github.event_name != 'pull_request' && (inputs.force_pull == true || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && steps.crowdin-token.outputs.available == 'true'
         run: |
           # Languages supported by Mintlify (see packages/twenty-docs/src/shared/supported-languages.ts)
           LANGUAGES="fr ar cs de es it ja ko pt ro ru tr zh-CN"

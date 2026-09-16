@@ -55,8 +55,23 @@ jobs:
           git add .
           git stash
 
-      - name: Pull translations from Crowdin
+      # Forks/build repos without CROWDIN_PERSONAL_TOKEN must not fail the
+      # two-hourly runs; skip all Crowdin calls and finish with no changes.
+      - name: Check Crowdin token availability
+        id: crowdin-token
         if: inputs.force_pull == true || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: |
+          if [ -n "$CROWDIN_PERSONAL_TOKEN" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::CROWDIN_PERSONAL_TOKEN is not configured in this repository; skipping the Crowdin pull."
+          fi
+        env:
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+
+      - name: Pull translations from Crowdin
+        if: (inputs.force_pull == true || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && steps.crowdin-token.outputs.available == 'true'
         uses: crowdin/github-action@8868a33591d21088edfc398968173a3b98d51706 # v2
         with:
           upload_sources: false
@@ -89,6 +104,7 @@ jobs:
 
       # Fix encoding issues (escaped Unicode like \u62db -> 招) and push fixes back to Crowdin
       - name: Normalize translations in Crowdin
+        if: steps.crowdin-token.outputs.available == 'true'
         run: npx tsx packages/twenty-utils/crowdin-normalizer/normalize-crowdin-translations.ts --project=1 --apply --rules=escaped-unicode || echo "::warning::translation normalization failed (non-blocking)"
         env:
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
