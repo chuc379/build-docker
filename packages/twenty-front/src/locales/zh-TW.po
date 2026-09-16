@@ -3069,6 +3069,12 @@ msgstr "軸名稱"
 msgid "Back"
 msgstr "返回"
 
+#. js-lingui-id: uQZ27I
+#. placeholder {0}: objectMetadataItem.labelPlural
+#: src/pages/object-record/RecordShowPageHeader.tsx
+msgid "Back to {0}"
+msgstr ""
+
 #. js-lingui-id: wWjfh4
 #: src/modules/ui/navigation/bread-crumb/components/MobileBreadcrumb.tsx
 msgid "Back to {text}"
@@ -3098,6 +3104,11 @@ msgstr ""
 #: src/pages/settings/admin-panel/SettingsAdminApplicationRegistrationGeneralToggles.tsx
 #~ msgid "Backfill started. This app will be installed on all existing workspaces in the background."
 #~ msgstr "已開始回填。此應用程式將在背景安裝到所有現有工作區。"
+
+#. js-lingui-id: i8ZVQU
+#: src/modules/advanced-text-editor/constants/AdvancedTextEditorBlockCatalog.ts
+msgid "background"
+msgstr ""
 
 #. js-lingui-id: GtJbUa
 #: src/modules/advanced-text-editor/constants/AdvancedTextEditorBlockCatalog.ts
@@ -3936,6 +3947,11 @@ msgstr "聊天"
 #. js-lingui-id: c9+oKq
 #: src/modules/workflow/workflow-template/components/WorkflowTemplatePreview.tsx
 msgid "Check condition"
+msgstr ""
+
+#. js-lingui-id: JslvtK
+#: src/modules/activities/calendar/components/CalendarEventComposerFields.tsx
+msgid "Check the event dates"
 msgstr ""
 
 #. js-lingui-id: h5C4B4
@@ -5361,6 +5377,11 @@ msgstr "創建 API 密鑰"
 msgid "Create blank workflow"
 msgstr ""
 
+#. js-lingui-id: 0gp+cZ
+#: src/modules/activities/calendar/hooks/useComposeCalendarEventRelatedRecordAction.ts
+msgid "Create calendar event"
+msgstr ""
+
 #. js-lingui-id: fbe2ik
 #: src/modules/settings/roles/role-permissions/permission-flags/hooks/useActionRolePermissionFlagConfig.ts
 msgid "Create Calendar Event"
@@ -5384,6 +5405,11 @@ msgstr "創建日期字段"
 #. js-lingui-id: /NVhwV
 #: src/modules/workflow/workflow-template/components/WorkflowTemplateCatalog.tsx
 msgid "Create draft"
+msgstr ""
+
+#. js-lingui-id: PybJS2
+#: src/modules/side-panel/pages/compose-calendar-event/components/SidePanelComposeCalendarEventPage.tsx
+msgid "Create event"
 msgstr ""
 
 #. js-lingui-id: vY2Gfm
@@ -5500,9 +5526,9 @@ msgid "Created"
 msgstr "已建立"
 
 #. js-lingui-id: 4fBuqE
-#: src/modules/side-panel/components/SidePanelRecordInfo.tsx
-#~ msgid "Created {beautifiedCreatedAt}"
-#~ msgstr ""
+#: src/modules/side-panel/pages/search/components/SidePanelSearchRecordPreviewCard.tsx
+msgid "Created {beautifiedCreatedAt}"
+msgstr ""
 
 #. js-lingui-id: 6vWyWm
 #: src/modules/ai/constants/crud-tool-operation-verbs.constant.ts
@@ -5529,13 +5555,13 @@ msgstr "正在建立 {objectLabel}"
 
 #. js-lingui-id: qvD1cU
 #: src/modules/workflow/workflow-template/components/CreateBlankWorkflowCard.tsx
-msgid "Creating blank..."
-msgstr ""
+#~ msgid "Creating blank..."
+#~ msgstr ""
 
 #. js-lingui-id: y0IM0x
 #: src/modules/workflow/workflow-template/components/WorkflowTemplateCatalog.tsx
-msgid "Creating draft..."
-msgstr ""
+#~ msgid "Creating draft..."
+#~ msgstr ""
 
 #. js-lingui-id: 00OfBp
 #: src/modules/auth/sign-in-up/constants/WorkspaceActivationMessages.tsx
@@ -6054,7 +6080,6 @@ msgid "Data on display"
 msgstr "顯示的數據"
 
 #. js-lingui-id: /qrjU8
-#: src/modules/auth/sign-in-up/components/FooterNote.tsx
 #: src/pages/settings/legal/SettingsLegalDpa.tsx
 #: src/pages/settings/legal/SettingsLegalDpa.tsx
 msgid "Data Processing Agreement"
@@ -8550,6 +8575,17 @@ msgstr "宣告所有權失敗。"
 #. js-lingui-id: jc9Efz
 #: src/modules/workflow/workflow-template/components/CreateBlankWorkflowCard.tsx
 msgid "Failed to create blank workflow"
+msgstr ""
+
+#. js-lingui-id: kzaVCK
+#: src/modules/activities/calendar/hooks/useCreateCalendarEvent.ts
+#: src/modules/activities/calendar/hooks/useCreateCalendarEvent.ts
+msgid "Failed to create calendar event"
+msgstr ""
+
+#. js-lingui-id: +xlTfK
+#: src/modules/object-record/record-list/components/RecordListAddNew.tsx
+msgid "Failed to create record"
 msgstr ""
 
 #. js-lingui-id: ITWxKI
@@ -11187,7 +11223,6 @@ msgstr "標籤必須包含至少一個英數字元"
 
 #. js-lingui-id: vXIe7J
 #: src/pages/settings/profile/appearance/components/LocalePicker.tsx
-#: src/pages/settings/profile/appearance/components/SettingsExperience.tsx
 msgid "Language"
 msgstr "語言"
 
@@ -13548,6 +13583,11 @@ msgstr "此步驟未記錄任何日誌。"
 msgid "No logs yet"
 msgstr ""
 
+#. js-lingui-id: WqPs8R
+#: src/modules/activities/timeline-activities/components/EventList.tsx
+msgid "No matching activity"
+msgstr ""
+
 #. js-lingui-id: qjXnWY
 #: src/modules/workflow/workflow-template/components/WorkflowTemplateLibrary.tsx
 msgid "No matching templates"
@@ -14794,6 +14834,12 @@ msgstr "內距"
 msgid "Page"
 msgstr "頁"
 
+#. js-lingui-id: 9PPBpT
+#. placeholder {0}: page + 1
+#: src/modules/settings/components/SettingsPaginationControls.tsx
+msgid "Page {0} of {pageCount}"
+msgstr ""
+
 #. js-lingui-id: Mr/64e
 #: src/modules/settings/admin-panel/components/SettingsAdminGeneral.tsx
 msgid "Page {item}"
@@ -15415,6 +15461,7 @@ msgstr "優先支援"
 #. js-lingui-id: LcET2C
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
+#: src/modules/auth/sign-in-up/components/FooterNote.tsx
 msgid "Privacy Policy"
 msgstr "隱私政策"
 
@@ -15718,6 +15765,15 @@ msgstr "讀取／編輯／刪除權限"
 msgid "Ready to use"
 msgstr ""
 
+#. js-lingui-id: VJScHU
+#: src/modules/settings/admin-panel/components/SettingsAdminWorkspaceCreditGrantModal.tsx
+#: src/modules/settings/admin-panel/components/SettingsAdminWorkspaceCreditGrantsTable.tsx
+#: src/modules/settings/unsubscribers/components/filter-dropdown/SettingsUnsubscribersFilterDropdown.tsx
+#: src/modules/settings/unsubscribers/components/filter-dropdown/SettingsUnsubscribersFilterMenuContent.tsx
+#: src/modules/settings/unsubscribers/components/SettingsUnsubscribersList.tsx
+msgid "Reason"
+msgstr ""
+
 #. js-lingui-id: wUf2OL
 #: src/modules/settings/admin-panel/components/SettingsAdminChatMessagePartRenderer.tsx
 #: src/modules/workflow/workflow-steps/workflow-actions/ai-agent-action/components/WorkflowRunStepLogsAiAgentDetail.tsx
@@ -15755,10 +15811,20 @@ msgstr "最近的用戶"
 msgid "Recents"
 msgstr "最近"
 
+#. js-lingui-id: I3QpvQ
+#: src/modules/side-panel/pages/send-campaign-test/components/SidePanelSendCampaignTestPage.tsx
+msgid "Recipient"
+msgstr ""
+
 #. js-lingui-id: lAxGwv
 #: src/modules/workflow/workflow-steps/workflow-actions/components/WorkflowEditActionEmailBase.tsx
 #~ msgid "Recipient roles"
 #~ msgstr ""
+
+#. js-lingui-id: p8GO5h
+#: src/modules/side-panel/pages/send-campaign-test/components/SidePanelSendCampaignTestPage.tsx
+msgid "recipient@example.com"
+msgstr ""
 
 #. js-lingui-id: yPrbsy
 #: src/modules/workflow/workflow-steps/workflow-actions/components/WorkflowRunStepLogsEmailDetail.tsx
@@ -17351,6 +17417,11 @@ msgstr "選取要編輯的導覽項目"
 msgid "Select a region"
 msgstr ""
 
+#. js-lingui-id: dE5jOH
+#: src/modules/side-panel/pages/email-block-settings/components/EmailPageStyleSection.tsx
+msgid "Select a section, columns, button or divider in the email body to edit its settings."
+msgstr ""
+
 #. js-lingui-id: YkYui1
 #: src/modules/activities/emails/components/CampaignDetailsFields.tsx
 msgid "Select a sender"
@@ -17525,7 +17596,12 @@ msgstr "選擇哪些模型會在工作區的模型選擇器中顯示為推薦"
 
 #. js-lingui-id: 4q8P59
 #: src/pages/settings/profile/appearance/components/SettingsExperience.tsx
-msgid "Select your language"
+#~ msgid "Select your language"
+#~ msgstr ""
+
+#. js-lingui-id: 7c7atJ
+#: src/pages/settings/profile/appearance/components/SettingsExperience.tsx
+msgid "Select your language and adjust the size of the interface"
 msgstr ""
 
 #. js-lingui-id: AXTJAW
@@ -17545,7 +17621,7 @@ msgid "Send an invite email to your team"
 msgstr "向您的團隊發送邀請電子郵件"
 
 #. js-lingui-id: 65dxv8
-#: src/modules/workflow/workflow-run/observability/WorkflowRunStepLogsEmailDetail.tsx
+#: src/modules/workflow/workflow-steps/workflow-actions/components/WorkflowRunStepLogsEmailDetail.tsx
 #: src/modules/workflow/workflow-template/components/WorkflowTemplatePreview.tsx
 msgid "Send email"
 msgstr "發送電子郵件"
@@ -18925,6 +19001,12 @@ msgstr ""
 msgid "Temporary Failure"
 msgstr "暫時故障"
 
+#. js-lingui-id: 4Y5H+g
+#: src/modules/auth/sign-in-up/components/FooterNote.tsx
+#: src/modules/auth/sign-in-up/components/FooterNote.tsx
+msgid "Terms"
+msgstr ""
+
 #. js-lingui-id: h0xgxg
 #: src/modules/settings/applications/components/SettingsApplicationAboutSidebar.tsx
 msgid "Terms / Privacy"
@@ -18933,8 +19015,8 @@ msgstr "條款 / 隱私"
 #. js-lingui-id: xowcRf
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
-msgid "Terms of Service"
-msgstr "服務條款"
+#~ msgid "Terms of Service"
+#~ msgstr "服務條款"
 
 #. js-lingui-id: NnH3pK
 #: src/modules/settings/logic-functions/components/tabs/SettingsLogicFunctionCodeEditorTab.tsx
@@ -19535,6 +19617,12 @@ msgstr "這不應該發生"
 #: src/modules/settings/domains/utils/getSubdomainValidationSchema.ts
 msgid "This subdomain is reserved"
 msgstr "此子網域已被保留"
+
+#. js-lingui-id: ddMLFL
+#. placeholder {0}: formatCredits(grantPendingRevocation.amount)
+#: src/modules/settings/admin-panel/components/SettingsAdminWorkspaceCreditGrantsTable.tsx
+msgid "This takes {0} credits back off this workspace straight away. Revoking cannot be undone."
+msgstr ""
 
 #. js-lingui-id: JMtb5+
 #: src/modules/workflow/workflow-template/components/WorkflowTemplateCatalog.tsx

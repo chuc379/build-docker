@@ -1237,7 +1237,13 @@ msgstr "Không tìm thấy sản phẩm thanh toán."
 msgid "Birthday"
 msgstr "Sinh nhật"
 
-#. js-lingui-id: K1172m
+#. js-lingui-id: /q4AFh
+#: src/engine/workspace-manager/twenty-standard-application/constants/standard-command-menu-item.constant.ts
+msgctxt "commandMenuItem.label"
+msgid "Block Settings"
+msgstr ""
+
+#. js-lingui-id: IlqwEl
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-workspace-member-standard-flat-field-metadata.util.ts
 msgctxt "fieldMetadata.label"
 msgid "Blocklist"
@@ -2471,6 +2477,16 @@ msgstr "Không thể xác định đối tượng quan hệ tiêu chuẩn \"{sta
 msgid "Could not resolve the existing object \"{0}\" to rename its default relations"
 msgstr "Không thể xác định đối tượng hiện có \"{0}\" để đổi tên các mối quan hệ mặc định của nó."
 
+#. js-lingui-id: 5rS7nl
+#: src/engine/metadata-modules/metadata-side-effect/handlers/object-metadata/services/object-index-view-label-identifier-on-update-side-effect-handler.service.ts
+msgid "Could not resolve the existing object to reconcile its INDEX label identifier view field"
+msgstr ""
+
+#. js-lingui-id: TYpgQ/
+#: src/engine/metadata-modules/metadata-side-effect/handlers/object-metadata/services/object-record-page-label-identifier-on-update-side-effect-handler.service.ts
+msgid "Could not resolve the existing object to reconcile its record-page label identifier view field"
+msgstr ""
+
 #. js-lingui-id: hYgDIe
 #: src/engine/core-modules/tool-provider/utils/get-crud-tool-label.util.ts
 #: src/engine/core-modules/tool-provider/utils/get-crud-tool-label.util.ts
@@ -2799,7 +2815,19 @@ msgstr "Số ngày trước ngày hết hạn"
 msgid "Days since last purchase"
 msgstr ""
 
-#. js-lingui-id: yAT3be
+#. js-lingui-id: bpGbAD
+#: src/engine/workspace-manager/twenty-standard-application/constants/standard-command-menu-item.constant.ts
+msgctxt "commandMenuItem.shortLabel"
+msgid "Deactivate"
+msgstr ""
+
+#. js-lingui-id: lPFYWf
+#: src/engine/workspace-manager/twenty-standard-application/constants/standard-command-menu-item.constant.ts
+msgctxt "commandMenuItem.label"
+msgid "Deactivate Workflow"
+msgstr ""
+
+#. js-lingui-id: GuGzWG
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-workflow-standard-flat-field-metadata.util.ts
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-workflow-version-standard-flat-field-metadata.util.ts
 msgctxt "fieldMetadata.label"
@@ -4350,6 +4378,114 @@ msgstr "Chỉ mục GIN hoạt động trên các cột multi-select, mảng, JS
 #: src/engine/core-modules/application/application-registration/application-registration.exception.ts
 msgid "GitHub authentication failed. Try connecting your GitHub account again."
 msgstr "Xác thực GitHub thất bại. Hãy thử kết nối lại tài khoản GitHub của bạn."
+
+#. js-lingui-id: crn/PJ
+#: src/engine/metadata-modules/flat-command-menu-item/utils/build-navigation-flat-command-menu-item.util.ts
+msgctxt "commandMenuItem.label"
+msgid "Go to {objectLabelPlural}"
+msgstr ""
+
+#. js-lingui-id: LZngY5
+#: src/engine/workspace-manager/twenty-standard-application/constants/standard-command-menu-item.constant.ts
+msgctxt "commandMenuItem.label"
+msgid "Go to Accounts Settings"
+msgstr ""
+
+#. js-lingui-id: tKVJbL
+#: src/engine/workspace-manager/twenty-standard-application/constants/standard-command-menu-item.constant.ts
+msgctxt "commandMenuItem.label"
+msgid "Go to Admin Panel Settings"
+msgstr ""
+
+#. js-lingui-id: iLqs3S
+#: src/engine/workspace-manager/twenty-standard-application/constants/standard-command-menu-item.constant.ts
+msgctxt "commandMenuItem.label"
+msgid "Go to AI Settings"
+msgstr ""
+
+#. js-lingui-id: 60o/+J
+#: src/engine/workspace-manager/twenty-standard-application/constants/standard-command-menu-item.constant.ts
+msgctxt "commandMenuItem.label"
+msgid "Go to Apps Settings"
+msgstr ""
+
+#. js-lingui-id: tlIbgN
+#: src/engine/workspace-manager/twenty-standard-application/constants/standard-command-menu-item.constant.ts
+msgctxt "commandMenuItem.label"
+msgid "Go to Billing Settings"
+msgstr ""
+
+#. js-lingui-id: BKhayt
+#: src/engine/workspace-manager/twenty-standard-application/constants/standard-command-menu-item.constant.ts
+msgctxt "commandMenuItem.label"
+msgid "Go to Calendars Settings"
+msgstr ""
+
+#. js-lingui-id: u5u/QJ
+#: src/engine/workspace-manager/twenty-standard-application/constants/standard-command-menu-item.constant.ts
+msgctxt "commandMenuItem.label"
+msgid "Go to Community Settings"
+msgstr ""
+
+#. js-lingui-id: dZPXqH
+#: src/engine/workspace-manager/twenty-standard-application/constants/standard-command-menu-item.constant.ts
+msgctxt "commandMenuItem.label"
+msgid "Go to Data Model Settings"
+msgstr ""
+
+#. js-lingui-id: OLopIl
+#: src/engine/workspace-manager/twenty-standard-application/constants/standard-command-menu-item.constant.ts
+msgctxt "commandMenuItem.label"
+msgid "Go to Domains Settings"
+msgstr ""
+
+#. js-lingui-id: gawQTB
+#: src/engine/workspace-manager/twenty-standard-application/constants/standard-command-menu-item.constant.ts
+msgctxt "commandMenuItem.label"
+msgid "Go to Emails Settings"
+msgstr ""
+
+#. js-lingui-id: 46ZD9h
+#: src/engine/workspace-manager/twenty-standard-application/constants/standard-command-menu-item.constant.ts
+msgctxt "commandMenuItem.label"
+msgid "Go to Experience Settings"
+msgstr ""
+
+#. js-lingui-id: gfZlPy
+#: src/engine/workspace-manager/twenty-standard-application/constants/standard-command-menu-item.constant.ts
+msgctxt "commandMenuItem.label"
+msgid "Go to General Settings"
+msgstr ""
+
+#. js-lingui-id: 1EPmDp
+#: src/engine/workspace-manager/twenty-standard-application/constants/standard-command-menu-item.constant.ts
+msgctxt "commandMenuItem.label"
+msgid "Go to MCP & APIs Settings"
+msgstr ""
+
+#. js-lingui-id: vPl+B/
+#: src/engine/workspace-manager/twenty-standard-application/constants/standard-command-menu-item.constant.ts
+msgctxt "commandMenuItem.label"
+msgid "Go to Members Settings"
+msgstr ""
+
+#. js-lingui-id: qN3wNQ
+#: src/engine/workspace-manager/twenty-standard-application/constants/standard-command-menu-item.constant.ts
+msgctxt "commandMenuItem.label"
+msgid "Go to Roles Settings"
+msgstr ""
+
+#. js-lingui-id: xAAHTC
+#: src/engine/workspace-manager/twenty-standard-application/constants/standard-command-menu-item.constant.ts
+msgctxt "commandMenuItem.label"
+msgid "Go to Security Settings"
+msgstr ""
+
+#. js-lingui-id: Rrvufq
+#: src/engine/workspace-manager/twenty-standard-application/constants/standard-command-menu-item.constant.ts
+msgctxt "commandMenuItem.label"
+msgid "Go to Settings"
+msgstr ""
 
 #. js-lingui-id: cvJ2e6
 #: src/engine/core-modules/auth/auth.exception.ts
@@ -7441,8 +7577,8 @@ msgstr "Mục menu điều hướng PAGE_LAYOUT phải tham chiếu đến bố 
 #. js-lingui-id: RDkmYK
 #: src/engine/workspace-manager/workspace-migration/workspace-migration-builder/validators/services/flat-navigation-menu-item-validator.service.ts
 #: src/engine/workspace-manager/workspace-migration/workspace-migration-builder/validators/services/flat-navigation-menu-item-validator.service.ts
-msgid "pageLayoutId is required for PAGE_LAYOUT type"
-msgstr "pageLayoutId là bắt buộc đối với kiểu PAGE_LAYOUT."
+#~ msgid "pageLayoutId is required for PAGE_LAYOUT type"
+#~ msgstr "pageLayoutId là bắt buộc đối với kiểu PAGE_LAYOUT."
 
 #. js-lingui-id: T1gSWA
 #: src/engine/workspace-manager/workspace-migration/workspace-migration-builder/validators/services/flat-navigation-menu-item-validator.service.ts
@@ -7761,6 +7897,12 @@ msgstr "Vui lòng sử dụng Cài đặt để xóa một thành viên khỏi k
 msgid "Please use single sign-on to authenticate."
 msgstr "Vui lòng sử dụng đăng nhập một lần để xác thực."
 
+#. js-lingui-id: f+Fqpo
+#: src/modules/tinasoft/workflow-template/services/builders/hr-cv-intake-matching.builder.ts
+#: src/modules/tinasoft/workflow-template/services/builders/hr-schedule-interview.builder.ts
+msgid "PM / HR notification email"
+msgstr ""
+
 #. js-lingui-id: pxTMbt
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
 msgctxt "fieldMetadata.label"
@@ -8048,10 +8190,16 @@ msgctxt "fieldMetadata.description"
 msgid "Recurring Event ID"
 msgstr "ID Sự kiện Định kỳ"
 
+#. js-lingui-id: 5hxu+5
+#: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-calendar-channel-event-association-standard-flat-field-metadata.util.ts
+msgctxt "fieldMetadata.label"
+msgid "Recurring Event ID"
+msgstr ""
+
 #. js-lingui-id: V3DAOp
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-workflow-standard-flat-field-metadata.util.ts
-msgid "Reference to the core workflow row"
-msgstr "Tham chiếu đến bản ghi của quy trình làm việc cốt lõi"
+#~ msgid "Reference to the core workflow row"
+#~ msgstr "Tham chiếu đến bản ghi của quy trình làm việc cốt lõi"
 
 #. js-lingui-id: zEHtXk
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-workflow-standard-flat-field-metadata.util.ts
@@ -9601,6 +9749,11 @@ msgstr "Ứng dụng không được chỉ định vai trò hợp lệ. Vui lòn
 msgid "The application key-value entry could not be saved. Please try again."
 msgstr "Không thể lưu mục khóa-giá trị của ứng dụng. Vui lòng thử lại."
 
+#. js-lingui-id: WPAHpm
+#: src/engine/core-modules/logic-function/logic-function-trigger/triggers/route/exceptions/route-trigger.exception.ts
+msgid "The application's production dependencies are too large to install. Move packages that are not imported by its logic functions (UI libraries, dev tooling) out of \"dependencies\"."
+msgstr ""
+
 #. js-lingui-id: KHtcGn
 #: src/modules/calendar/calendar-event-creation-manager/exceptions/calendar-event-creation.exception.ts
 msgid "The calendar provider rejected the event creation request."
@@ -9785,6 +9938,16 @@ msgstr "Danh sách mà chiến dịch này được gửi tới"
 msgid "The logic function to run on connect was not found."
 msgstr "Không tìm thấy hàm logic cần chạy khi kết nối."
 
+#. js-lingui-id: PgpPoi
+#: src/engine/core-modules/application/connection-provider/connection-provider.exception.ts
+msgid "The logic function to run on disconnect was not found."
+msgstr ""
+
+#. js-lingui-id: fIq00W
+#: src/engine/metadata-modules/page-layout-widget/utils/validate-field-configuration-nested-relation.util.ts
+msgid "The nested relation field configured for this widget could not be found."
+msgstr ""
+
 #. js-lingui-id: kdTB4e
 #: src/engine/core-modules/application/connection-provider/connection-provider.exception.ts
 msgid "The OAuth request is missing required parameters."
@@ -9799,6 +9962,21 @@ msgstr "Tham số trạng thái OAuth không hợp lệ hoặc đã hết hạn.
 #: src/engine/metadata-modules/metadata-side-effect/handlers/object-metadata/services/object-system-relations-on-update-side-effect-handler.service.ts
 msgid "The object to rename could not be found to update its default relations"
 msgstr "Không tìm thấy đối tượng cần đổi tên để cập nhật các mối quan hệ mặc định của nó."
+
+#. js-lingui-id: s9DUGk
+#: src/engine/metadata-modules/metadata-side-effect/handlers/object-metadata/services/object-index-view-label-identifier-on-update-side-effect-handler.service.ts
+msgid "The object to update could not be found to reconcile its INDEX view"
+msgstr ""
+
+#. js-lingui-id: /QTsIU
+#: src/engine/metadata-modules/metadata-side-effect/handlers/object-metadata/services/object-record-page-label-identifier-on-update-side-effect-handler.service.ts
+msgid "The object to update could not be found to reconcile its record page"
+msgstr ""
+
+#. js-lingui-id: QaaKZQ
+#: src/engine/workspace-manager/workspace-migration/workspace-migration-builder/validators/services/flat-timeline-activity-type-validator.service.ts
+msgid "The object used by this timeline activity type is not available"
+msgstr ""
 
 #. js-lingui-id: hx2IZ4
 #: src/engine/metadata-modules/object-permission/field-permission/field-permission.service.ts
@@ -10041,15 +10219,36 @@ msgstr "Có vấn đề với mã thông báo của bạn. Vui lòng thử lại
 msgid "There is no failed message to retry."
 msgstr "Không có tin nhắn lỗi nào để thử lại."
 
+#. js-lingui-id: jMDu2a
+#: src/engine/core-modules/onboarding/onboarding.exception.ts
+msgid "There is no previous onboarding step to go back to."
+msgstr ""
+
+#. js-lingui-id: Yi0Q/T
+#: src/engine/core-modules/workspace/services/workspace.service.ts
+msgid "These fields cannot be updated before the workspace is activated: {fieldsList}."
+msgstr ""
+
 #. js-lingui-id: Iy9pZw
 #: src/engine/api/graphql/workspace-query-runner/utils/handle-duplicate-key-error.util.ts
-msgid "This {fieldLabel} value is already in use. Please check your data and try again."
-msgstr "Giá trị {fieldLabel} này đã được sử dụng. Vui lòng kiểm tra dữ liệu của bạn và thử lại."
+#~ msgid "This {fieldLabel} value is already in use. Please check your data and try again."
+#~ msgstr "Giá trị {fieldLabel} này đã được sử dụng. Vui lòng kiểm tra dữ liệu của bạn và thử lại."
 
 #. js-lingui-id: bypqPt
 #: src/engine/core-modules/server-route-trigger/exceptions/server-route-trigger.exception.ts
 msgid "This action is currently unavailable."
 msgstr "Thao tác này hiện không khả dụng."
+
+#. js-lingui-id: jrTmnG
+#: src/engine/metadata-modules/ai/ai.exception.ts
+#: src/engine/metadata-modules/ai/ai.exception.ts
+msgid "This action is not available for your request."
+msgstr ""
+
+#. js-lingui-id: 4CW4iW
+#: src/engine/core-modules/emailing-domain/exceptions/emailing-domain.exception.ts
+msgid "This address cannot be removed from the suppression list."
+msgstr ""
 
 #. js-lingui-id: Izdz+Y
 #: src/engine/core-modules/api-key/services/api-key.service.ts
@@ -10091,6 +10290,21 @@ msgstr "Ứng dụng này yêu cầu phiên bản mới hơn phiên bản mà kh
 #: src/engine/core-modules/application/application-registration/application-registration.exception.ts
 msgid "This application is already owned by a workspace."
 msgstr "Ứng dụng này đã thuộc sở hữu của một không gian làm việc khác."
+
+#. js-lingui-id: SRnMG0
+#: src/engine/core-modules/emailing-domain/exceptions/emailing-domain.exception.ts
+msgid "This campaign cannot be sent. It may be missing a sender, subject or recipient list, or it was already sent."
+msgstr ""
+
+#. js-lingui-id: ZyEq3L
+#: src/engine/core-modules/emailing-domain/exceptions/emailing-domain.exception.ts
+msgid "This campaign no longer exists."
+msgstr ""
+
+#. js-lingui-id: 5MvgEo
+#: src/modules/emailing/utils/compile-campaign-email-content.util.ts
+msgid "This campaign's email content is invalid."
+msgstr ""
 
 #. js-lingui-id: 99gsJ/
 #: src/engine/metadata-modules/index-metadata/utils/validate-no-duplicate-unique-index.util.ts
@@ -10157,6 +10371,11 @@ msgstr "Khóa doanh nghiệp này đã được sử dụng trên một phiên b
 #: src/engine/metadata-modules/ai/ai-agent-monitor/services/agent-turn-grader.service.ts
 msgid "This evaluation target could not be found."
 msgstr "Không thể tìm thấy mục tiêu đánh giá này."
+
+#. js-lingui-id: bAuotQ
+#: src/engine/core-modules/billing/billing.exception.ts
+msgid "This feature is not available on your current plan. Please upgrade to continue."
+msgstr ""
 
 #. js-lingui-id: hsi+jf
 #: src/engine/core-modules/workspace/workspace.exception.ts
@@ -11429,6 +11648,12 @@ msgstr "Không tìm thấy chế độ xem sau khi upsert"
 msgid "View not found for widget"
 msgstr "Không tìm thấy chế độ xem cho widget"
 
+#. js-lingui-id: pAoCL6
+#: src/engine/workspace-manager/twenty-standard-application/constants/standard-command-menu-item.constant.ts
+msgctxt "commandMenuItem.label"
+msgid "View Previous AI Chats"
+msgstr ""
+
 #. js-lingui-id: wIcQxd
 #: src/engine/metadata-modules/view/services/view-widget-upsert.service.ts
 #~ msgid "View settings can only be updated on record table widgets"
@@ -11981,10 +12206,16 @@ msgctxt "navigationMenuItem.name"
 msgid "Workflows"
 msgstr "Quy trình làm việc"
 
+#. js-lingui-id: O0tztx
+#: src/engine/workspace-manager/twenty-standard-application/utils/object-metadata/create-standard-flat-object-metadata.util.ts
+msgctxt "objectMetadata.labelPlural"
+msgid "Workflows"
+msgstr ""
+
 #. js-lingui-id: urCUgs
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-timeline-activity-standard-flat-field-metadata.util.ts
-msgid "WorkflowVersion"
-msgstr "Phiên bản quy trình làm việc"
+#~ msgid "WorkflowVersion"
+#~ msgstr "Phiên bản quy trình làm việc"
 
 #. js-lingui-id: W5Wgz6
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-timeline-activity-standard-flat-field-metadata.util.ts

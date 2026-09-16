@@ -1232,7 +1232,13 @@ msgstr "Billing product not found."
 msgid "Birthday"
 msgstr "Birthday"
 
-#. js-lingui-id: K1172m
+#. js-lingui-id: /q4AFh
+#: src/engine/workspace-manager/twenty-standard-application/constants/standard-command-menu-item.constant.ts
+msgctxt "commandMenuItem.label"
+msgid "Block Settings"
+msgstr "Block Settings"
+
+#. js-lingui-id: IlqwEl
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-workspace-member-standard-flat-field-metadata.util.ts
 msgctxt "fieldMetadata.label"
 msgid "Blocklist"
@@ -2804,7 +2810,19 @@ msgstr "Days before quote expiry"
 msgid "Days since last purchase"
 msgstr "Days since last purchase"
 
-#. js-lingui-id: yAT3be
+#. js-lingui-id: bpGbAD
+#: src/engine/workspace-manager/twenty-standard-application/constants/standard-command-menu-item.constant.ts
+msgctxt "commandMenuItem.shortLabel"
+msgid "Deactivate"
+msgstr "Deactivate"
+
+#. js-lingui-id: lPFYWf
+#: src/engine/workspace-manager/twenty-standard-application/constants/standard-command-menu-item.constant.ts
+msgctxt "commandMenuItem.label"
+msgid "Deactivate Workflow"
+msgstr "Deactivate Workflow"
+
+#. js-lingui-id: GuGzWG
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-workflow-standard-flat-field-metadata.util.ts
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-workflow-version-standard-flat-field-metadata.util.ts
 msgctxt "fieldMetadata.label"
@@ -7868,6 +7886,12 @@ msgstr "Please use Settings to remove a workspace member."
 msgid "Please use single sign-on to authenticate."
 msgstr "Please use single sign-on to authenticate."
 
+#. js-lingui-id: f+Fqpo
+#: src/modules/tinasoft/workflow-template/services/builders/hr-cv-intake-matching.builder.ts
+#: src/modules/tinasoft/workflow-template/services/builders/hr-schedule-interview.builder.ts
+msgid "PM / HR notification email"
+msgstr "PM / HR notification email"
+
 #. js-lingui-id: pxTMbt
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
 msgctxt "fieldMetadata.label"
@@ -10320,6 +10344,11 @@ msgstr "This enterprise key is already in use on another server instance. Releas
 #: src/engine/metadata-modules/ai/ai-agent-monitor/services/agent-turn-grader.service.ts
 msgid "This evaluation target could not be found."
 msgstr "This evaluation target could not be found."
+
+#. js-lingui-id: bAuotQ
+#: src/engine/core-modules/billing/billing.exception.ts
+msgid "This feature is not available on your current plan. Please upgrade to continue."
+msgstr "This feature is not available on your current plan. Please upgrade to continue."
 
 #. js-lingui-id: hsi+jf
 #: src/engine/core-modules/workspace/workspace.exception.ts

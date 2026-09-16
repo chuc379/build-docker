@@ -3059,6 +3059,12 @@ msgstr "Axis name"
 msgid "Back"
 msgstr "Back"
 
+#. js-lingui-id: uQZ27I
+#. placeholder {0}: objectMetadataItem.labelPlural
+#: src/pages/object-record/RecordShowPageHeader.tsx
+msgid "Back to {0}"
+msgstr "Back to {0}"
+
 #. js-lingui-id: wWjfh4
 #: src/modules/ui/navigation/bread-crumb/components/MobileBreadcrumb.tsx
 msgid "Back to {text}"
@@ -3083,6 +3089,11 @@ msgstr "Back to templates"
 #: src/modules/workflow/workflow-template/components/WorkflowTemplateHeaderButton.tsx
 msgid "Back to workflows"
 msgstr "Back to workflows"
+
+#. js-lingui-id: i8ZVQU
+#: src/modules/advanced-text-editor/constants/AdvancedTextEditorBlockCatalog.ts
+msgid "background"
+msgstr "background"
 
 #. js-lingui-id: GtJbUa
 #: src/modules/advanced-text-editor/constants/AdvancedTextEditorBlockCatalog.ts
@@ -3917,6 +3928,11 @@ msgstr "Chats"
 #: src/modules/workflow/workflow-template/components/WorkflowTemplatePreview.tsx
 msgid "Check condition"
 msgstr "Check condition"
+
+#. js-lingui-id: JslvtK
+#: src/modules/activities/calendar/components/CalendarEventComposerFields.tsx
+msgid "Check the event dates"
+msgstr "Check the event dates"
 
 #. js-lingui-id: h5C4B4
 #: src/modules/settings/emailing-domains/components/SettingsEmailingDomainVerifyButton.tsx
@@ -5341,6 +5357,11 @@ msgstr "Create API key"
 msgid "Create blank workflow"
 msgstr "Create blank workflow"
 
+#. js-lingui-id: 0gp+cZ
+#: src/modules/activities/calendar/hooks/useComposeCalendarEventRelatedRecordAction.ts
+msgid "Create calendar event"
+msgstr "Create calendar event"
+
 #. js-lingui-id: fbe2ik
 #: src/modules/settings/roles/role-permissions/permission-flags/hooks/useActionRolePermissionFlagConfig.ts
 msgid "Create Calendar Event"
@@ -5365,6 +5386,11 @@ msgstr "Create date field"
 #: src/modules/workflow/workflow-template/components/WorkflowTemplateCatalog.tsx
 msgid "Create draft"
 msgstr "Create draft"
+
+#. js-lingui-id: PybJS2
+#: src/modules/side-panel/pages/compose-calendar-event/components/SidePanelComposeCalendarEventPage.tsx
+msgid "Create event"
+msgstr "Create event"
 
 #. js-lingui-id: vY2Gfm
 #: src/modules/views/view-picker/components/ViewPickerCreateButton.tsx
@@ -5480,9 +5506,9 @@ msgid "Created"
 msgstr "Created"
 
 #. js-lingui-id: 4fBuqE
-#: src/modules/side-panel/components/SidePanelRecordInfo.tsx
-#~ msgid "Created {beautifiedCreatedAt}"
-#~ msgstr "Created {beautifiedCreatedAt}"
+#: src/modules/side-panel/pages/search/components/SidePanelSearchRecordPreviewCard.tsx
+msgid "Created {beautifiedCreatedAt}"
+msgstr "Created {beautifiedCreatedAt}"
 
 #. js-lingui-id: 6vWyWm
 #: src/modules/ai/constants/crud-tool-operation-verbs.constant.ts
@@ -5509,13 +5535,13 @@ msgstr "Creating {objectLabel}"
 
 #. js-lingui-id: qvD1cU
 #: src/modules/workflow/workflow-template/components/CreateBlankWorkflowCard.tsx
-msgid "Creating blank..."
-msgstr "Creating blank..."
+#~ msgid "Creating blank..."
+#~ msgstr "Creating blank..."
 
 #. js-lingui-id: y0IM0x
 #: src/modules/workflow/workflow-template/components/WorkflowTemplateCatalog.tsx
-msgid "Creating draft..."
-msgstr "Creating draft..."
+#~ msgid "Creating draft..."
+#~ msgstr "Creating draft..."
 
 #. js-lingui-id: 00OfBp
 #: src/modules/auth/sign-in-up/constants/WorkspaceActivationMessages.tsx
@@ -6034,7 +6060,6 @@ msgid "Data on display"
 msgstr "Data on display"
 
 #. js-lingui-id: /qrjU8
-#: src/modules/auth/sign-in-up/components/FooterNote.tsx
 #: src/pages/settings/legal/SettingsLegalDpa.tsx
 #: src/pages/settings/legal/SettingsLegalDpa.tsx
 msgid "Data Processing Agreement"
@@ -8541,6 +8566,17 @@ msgstr "Failed to claim ownership."
 #: src/modules/workflow/workflow-template/components/CreateBlankWorkflowCard.tsx
 msgid "Failed to create blank workflow"
 msgstr "Failed to create blank workflow"
+
+#. js-lingui-id: kzaVCK
+#: src/modules/activities/calendar/hooks/useCreateCalendarEvent.ts
+#: src/modules/activities/calendar/hooks/useCreateCalendarEvent.ts
+msgid "Failed to create calendar event"
+msgstr "Failed to create calendar event"
+
+#. js-lingui-id: +xlTfK
+#: src/modules/object-record/record-list/components/RecordListAddNew.tsx
+msgid "Failed to create record"
+msgstr "Failed to create record"
 
 #. js-lingui-id: ITWxKI
 #: src/pages/settings/communications/SettingsWorkspaceNewUnsubscribeTopic.tsx
@@ -11178,7 +11214,6 @@ msgstr "Label must contain at least one alphanumeric character"
 
 #. js-lingui-id: vXIe7J
 #: src/pages/settings/profile/appearance/components/LocalePicker.tsx
-#: src/pages/settings/profile/appearance/components/SettingsExperience.tsx
 msgid "Language"
 msgstr "Language"
 
@@ -13539,6 +13574,11 @@ msgstr "No logs were recorded for this step."
 msgid "No logs yet"
 msgstr "No logs yet"
 
+#. js-lingui-id: WqPs8R
+#: src/modules/activities/timeline-activities/components/EventList.tsx
+msgid "No matching activity"
+msgstr "No matching activity"
+
 #. js-lingui-id: qjXnWY
 #: src/modules/workflow/workflow-template/components/WorkflowTemplateLibrary.tsx
 msgid "No matching templates"
@@ -14785,6 +14825,12 @@ msgstr "Padding"
 msgid "Page"
 msgstr "Page"
 
+#. js-lingui-id: 9PPBpT
+#. placeholder {0}: page + 1
+#: src/modules/settings/components/SettingsPaginationControls.tsx
+msgid "Page {0} of {pageCount}"
+msgstr "Page {0} of {pageCount}"
+
 #. js-lingui-id: Mr/64e
 #: src/modules/settings/admin-panel/components/SettingsAdminGeneral.tsx
 msgid "Page {item}"
@@ -15401,6 +15447,7 @@ msgstr "Priority support"
 #. js-lingui-id: LcET2C
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
+#: src/modules/auth/sign-in-up/components/FooterNote.tsx
 msgid "Privacy Policy"
 msgstr "Privacy Policy"
 
@@ -15704,6 +15751,15 @@ msgstr "Read/Edit/Delete permissions"
 msgid "Ready to use"
 msgstr "Ready to use"
 
+#. js-lingui-id: VJScHU
+#: src/modules/settings/admin-panel/components/SettingsAdminWorkspaceCreditGrantModal.tsx
+#: src/modules/settings/admin-panel/components/SettingsAdminWorkspaceCreditGrantsTable.tsx
+#: src/modules/settings/unsubscribers/components/filter-dropdown/SettingsUnsubscribersFilterDropdown.tsx
+#: src/modules/settings/unsubscribers/components/filter-dropdown/SettingsUnsubscribersFilterMenuContent.tsx
+#: src/modules/settings/unsubscribers/components/SettingsUnsubscribersList.tsx
+msgid "Reason"
+msgstr "Reason"
+
 #. js-lingui-id: wUf2OL
 #: src/modules/settings/admin-panel/components/SettingsAdminChatMessagePartRenderer.tsx
 #: src/modules/workflow/workflow-steps/workflow-actions/ai-agent-action/components/WorkflowRunStepLogsAiAgentDetail.tsx
@@ -15741,10 +15797,20 @@ msgstr "Recent Users"
 msgid "Recents"
 msgstr "Recents"
 
+#. js-lingui-id: I3QpvQ
+#: src/modules/side-panel/pages/send-campaign-test/components/SidePanelSendCampaignTestPage.tsx
+msgid "Recipient"
+msgstr "Recipient"
+
 #. js-lingui-id: lAxGwv
 #: src/modules/workflow/workflow-steps/workflow-actions/components/WorkflowEditActionEmailBase.tsx
 #~ msgid "Recipient roles"
 #~ msgstr "Recipient roles"
+
+#. js-lingui-id: p8GO5h
+#: src/modules/side-panel/pages/send-campaign-test/components/SidePanelSendCampaignTestPage.tsx
+msgid "recipient@example.com"
+msgstr "recipient@example.com"
 
 #. js-lingui-id: yPrbsy
 #: src/modules/workflow/workflow-steps/workflow-actions/components/WorkflowRunStepLogsEmailDetail.tsx
@@ -17337,6 +17403,11 @@ msgstr "Select a navigation item to edit"
 msgid "Select a region"
 msgstr "Select a region"
 
+#. js-lingui-id: dE5jOH
+#: src/modules/side-panel/pages/email-block-settings/components/EmailPageStyleSection.tsx
+msgid "Select a section, columns, button or divider in the email body to edit its settings."
+msgstr "Select a section, columns, button or divider in the email body to edit its settings."
+
 #. js-lingui-id: YkYui1
 #: src/modules/activities/emails/components/CampaignDetailsFields.tsx
 msgid "Select a sender"
@@ -17511,8 +17582,13 @@ msgstr "Select which models appear as recommended in the workspace model picker"
 
 #. js-lingui-id: 4q8P59
 #: src/pages/settings/profile/appearance/components/SettingsExperience.tsx
-msgid "Select your language"
-msgstr "Select your language"
+#~ msgid "Select your language"
+#~ msgstr "Select your language"
+
+#. js-lingui-id: 7c7atJ
+#: src/pages/settings/profile/appearance/components/SettingsExperience.tsx
+msgid "Select your language and adjust the size of the interface"
+msgstr "Select your language and adjust the size of the interface"
 
 #. js-lingui-id: AXTJAW
 #: src/pages/settings/profile/appearance/components/SettingsExperience.tsx
@@ -17531,7 +17607,7 @@ msgid "Send an invite email to your team"
 msgstr "Send an invite email to your team"
 
 #. js-lingui-id: 65dxv8
-#: src/modules/workflow/workflow-run/observability/WorkflowRunStepLogsEmailDetail.tsx
+#: src/modules/workflow/workflow-steps/workflow-actions/components/WorkflowRunStepLogsEmailDetail.tsx
 #: src/modules/workflow/workflow-template/components/WorkflowTemplatePreview.tsx
 msgid "Send email"
 msgstr "Send email"
@@ -18930,6 +19006,12 @@ msgstr "Templates are unavailable"
 msgid "Temporary Failure"
 msgstr "Temporary Failure"
 
+#. js-lingui-id: 4Y5H+g
+#: src/modules/auth/sign-in-up/components/FooterNote.tsx
+#: src/modules/auth/sign-in-up/components/FooterNote.tsx
+msgid "Terms"
+msgstr "Terms"
+
 #. js-lingui-id: h0xgxg
 #: src/modules/settings/applications/components/SettingsApplicationAboutSidebar.tsx
 msgid "Terms / Privacy"
@@ -18938,8 +19020,8 @@ msgstr "Terms / Privacy"
 #. js-lingui-id: xowcRf
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
-msgid "Terms of Service"
-msgstr "Terms of Service"
+#~ msgid "Terms of Service"
+#~ msgstr "Terms of Service"
 
 #. js-lingui-id: NnH3pK
 #: src/modules/settings/logic-functions/components/tabs/SettingsLogicFunctionCodeEditorTab.tsx
@@ -19572,6 +19654,12 @@ msgstr "This should never happen"
 #: src/modules/settings/domains/utils/getSubdomainValidationSchema.ts
 msgid "This subdomain is reserved"
 msgstr "This subdomain is reserved"
+
+#. js-lingui-id: ddMLFL
+#. placeholder {0}: formatCredits(grantPendingRevocation.amount)
+#: src/modules/settings/admin-panel/components/SettingsAdminWorkspaceCreditGrantsTable.tsx
+msgid "This takes {0} credits back off this workspace straight away. Revoking cannot be undone."
+msgstr "This takes {0} credits back off this workspace straight away. Revoking cannot be undone."
 
 #. js-lingui-id: JMtb5+
 #: src/modules/workflow/workflow-template/components/WorkflowTemplateCatalog.tsx

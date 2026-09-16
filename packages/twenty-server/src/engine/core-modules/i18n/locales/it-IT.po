@@ -1237,7 +1237,13 @@ msgstr "Prodotto di fatturazione non trovato."
 msgid "Birthday"
 msgstr ""
 
-#. js-lingui-id: K1172m
+#. js-lingui-id: /q4AFh
+#: src/engine/workspace-manager/twenty-standard-application/constants/standard-command-menu-item.constant.ts
+msgctxt "commandMenuItem.label"
+msgid "Block Settings"
+msgstr ""
+
+#. js-lingui-id: IlqwEl
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-workspace-member-standard-flat-field-metadata.util.ts
 msgctxt "fieldMetadata.label"
 msgid "Blocklist"
@@ -2809,7 +2815,19 @@ msgstr ""
 msgid "Days since last purchase"
 msgstr ""
 
-#. js-lingui-id: yAT3be
+#. js-lingui-id: bpGbAD
+#: src/engine/workspace-manager/twenty-standard-application/constants/standard-command-menu-item.constant.ts
+msgctxt "commandMenuItem.shortLabel"
+msgid "Deactivate"
+msgstr ""
+
+#. js-lingui-id: lPFYWf
+#: src/engine/workspace-manager/twenty-standard-application/constants/standard-command-menu-item.constant.ts
+msgctxt "commandMenuItem.label"
+msgid "Deactivate Workflow"
+msgstr ""
+
+#. js-lingui-id: GuGzWG
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-workflow-standard-flat-field-metadata.util.ts
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-workflow-version-standard-flat-field-metadata.util.ts
 msgctxt "fieldMetadata.label"
@@ -7873,6 +7891,12 @@ msgstr "Usa Impostazioni per rimuovere un membro dello spazio di lavoro."
 msgid "Please use single sign-on to authenticate."
 msgstr "Utilizza il single sign-on per autenticarti."
 
+#. js-lingui-id: f+Fqpo
+#: src/modules/tinasoft/workflow-template/services/builders/hr-cv-intake-matching.builder.ts
+#: src/modules/tinasoft/workflow-template/services/builders/hr-schedule-interview.builder.ts
+msgid "PM / HR notification email"
+msgstr ""
+
 #. js-lingui-id: pxTMbt
 #: src/engine/workspace-manager/twenty-standard-application/utils/field-metadata/compute-opportunity-standard-flat-field-metadata.util.ts
 msgctxt "fieldMetadata.label"
@@ -10325,6 +10349,11 @@ msgstr "Questa chiave Enterprise è già in uso su un'altra istanza del server. 
 #: src/engine/metadata-modules/ai/ai-agent-monitor/services/agent-turn-grader.service.ts
 msgid "This evaluation target could not be found."
 msgstr "Questo obiettivo di valutazione non è stato trovato."
+
+#. js-lingui-id: bAuotQ
+#: src/engine/core-modules/billing/billing.exception.ts
+msgid "This feature is not available on your current plan. Please upgrade to continue."
+msgstr ""
 
 #. js-lingui-id: hsi+jf
 #: src/engine/core-modules/workspace/workspace.exception.ts
