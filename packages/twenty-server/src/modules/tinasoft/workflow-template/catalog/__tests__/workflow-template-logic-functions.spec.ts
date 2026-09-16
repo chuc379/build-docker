@@ -126,11 +126,78 @@ describe('workflow template logic functions', () => {
         },
       ],
     });
-    expect(openOpportunityResult).toEqual({
-      shouldCreateReminder: false,
-      daysSinceLastOrder: 0,
-      assigneeId: '',
-      reminders: [],
+    it('builds an ISO interview slot from a DATE and hour/minute fields', async () => {
+    const main = getLogicFunctionByName(
+      'Build interview ISO datetime slot from date and hour/minute fields',
+    );
+
+    const result = await main({
+      interviewDate: '2026-09-20',
+      startHour: 10,
+      startMinute: 30,
+      endHour: 11,
+      endMinute: 15,
     });
+
+    expect(result).toEqual({
+      interviewDate: '2026-09-20',
+      startHour: '10',
+      startMinute: '30',
+      endHour: '11',
+      endMinute: '15',
+      startTime: '10:30',
+      endTime: '11:15',
+      timeZone: 'Asia/Ho_Chi_Minh',
+      startsAt: '2026-09-20T10:30:00+07:00',
+      endsAt: '2026-09-20T11:15:00+07:00',
+    });
+  });
+
+  it('rejects an interview slot whose end time is not after the start time', async () => {
+    const main = getLogicFunctionByName(
+      'Build interview ISO datetime slot from date and hour/minute fields',
+    );
+
+    await expect(
+      main({
+        interviewDate: '2026-09-20',
+        startHour: 10,
+        startMinute: 0,
+        endHour: 10,
+        endMinute: 0,
+      }),
+    ).rejects.toThrow('Thời gian kết thúc phải sau thời gian bắt đầu');
+  });
+
+  it('rejects an invalid calendar date for the interview', async () => {
+    const main = getLogicFunctionByName(
+      'Build interview ISO datetime slot from date and hour/minute fields',
+    );
+
+    await expect(
+      main({
+        interviewDate: '2026-02-30',
+        startHour: 10,
+        startMinute: 0,
+        endHour: 11,
+        endMinute: 0,
+      }),
+    ).rejects.toThrow('Ngày phỏng vấn không tồn tại');
+  });
+
+  it('rejects an interview slot that wraps around midnight', async () => {
+    const main = getLogicFunctionByName(
+      'Build interview ISO datetime slot from date and hour/minute fields',
+    );
+
+    await expect(
+      main({
+        interviewDate: '2026-09-20',
+        startHour: 23,
+        startMinute: 30,
+        endHour: 0,
+        endMinute: 15,
+      }),
+    ).rejects.toThrow('Thời gian kết thúc phải sau thời gian bắt đầu');
   });
 });

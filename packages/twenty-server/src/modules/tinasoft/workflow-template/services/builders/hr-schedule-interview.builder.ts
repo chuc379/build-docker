@@ -7,6 +7,7 @@ import { FieldMetadataType } from 'twenty-shared/types';
 import { WorkflowActionType } from 'twenty-shared/workflow';
 
 import { WorkflowTemplateDTO } from 'src/modules/tinasoft/workflow-template/api/dtos/workflow-template.dto';
+import { getWorkflowTemplateLogicFunctionIds } from 'src/modules/tinasoft/workflow-template/catalog/workflow-template-logic-functions.constant';
 import { IWorkflowTemplateBuilder } from 'src/modules/tinasoft/workflow-template/services/builders/workflow-template.builder.interface';
 import {
   type WorkflowTemplateBuildContext,
@@ -27,7 +28,7 @@ export class HrScheduleInterviewWorkflowTemplateBuilder
       id: this.id,
       name: 'Lên lịch phỏng vấn & tạo link Google Meet',
       description:
-        'HR nhập thông tin buổi phỏng vấn (ứng viên, email, vị trí, người phỏng vấn, khung giờ), hệ thống tạo sự kiện Google Calendar kèm link Google Meet, lưu hồ sơ phỏng vấn và gửi thư mời cho ứng viên cùng PM/HR.',
+        'HR nhập thông tin buổi phỏng vấn (ứng viên, email, vị trí, người phỏng vấn, ngày và khung giờ bắt đầu/kết thúc), hệ thống kiểm tra hợp lệ và tự động tạo sự kiện Google Calendar kèm link Google Meet, lưu hồ sơ phỏng vấn và gửi thư mời cho ứng viên cùng PM/HR.',
       shortDescription:
         'Xếp lịch phỏng vấn thủ công, tự động sinh link Google Meet và email thư mời.',
       purpose:
@@ -49,8 +50,10 @@ export class HrScheduleInterviewWorkflowTemplateBuilder
 
   build({
     settings,
+    workspaceId,
   }: WorkflowTemplateBuildContext): WorkflowTemplateDefinition {
     const formStepId = uuidv4();
+    const interviewScheduleStepId = uuidv4();
     const calendarEventStepId = uuidv4();
     const createRecordStepId = uuidv4();
     const sendEmailStepId = uuidv4();
@@ -60,6 +63,9 @@ export class HrScheduleInterviewWorkflowTemplateBuilder
       key: 'pmEmail',
     });
 
+    const { interviewSchedule } =
+      getWorkflowTemplateLogicFunctionIds(workspaceId);
+
     const emailBody = `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8fafc; padding: 24px; border-radius: 12px; border: 1px solid #e2e8f0;">
   <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 24px; border-radius: 10px; text-align: center; color: #ffffff; margin-bottom: 20px;">
     <h2 style="margin: 0 0 6px 0; font-size: 22px;">TINASOFT RECRUITMENT ATS</h2>
@@ -68,7 +74,7 @@ export class HrScheduleInterviewWorkflowTemplateBuilder
   <div style="background: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 16px;">
     <h3>👤 {{${formStepId}.candidateName}}</h3>
     <p>Vị trí ứng tuyển: <strong style="color: #2563eb;">{{${formStepId}.jobTitle}}</strong></p>
-    <p>📅 Thời gian: <strong>{{${formStepId}.dateTime}}</strong> → {{${formStepId}.endTime}}</p>
+    <p>📅 Thời gian: <strong>{{${formStepId}.interviewDate}} — {{${interviewScheduleStepId}.startTime}} → {{${interviewScheduleStepId}.endTime}}</strong> ({{${interviewScheduleStepId}.timeZone}})</p>
     <p>👥 Người phỏng vấn: {{${formStepId}.interviewer}}</p>
     <p style="margin-top: 16px;"><a href={{${calendarEventStepId}.conferenceLink}} style="background-color: #25D366; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 6px; font-weight: 600; font-size: 14px; display: inline-block;">🎥 Tham gia qua Google Meet</a></p>
     <p style="font-size: 12px; color: #64748b; margin-top: 8px;">Liên kết Meet: {{${calendarEventStepId}.conferenceLink}}</p>
@@ -130,17 +136,38 @@ export class HrScheduleInterviewWorkflowTemplateBuilder
               },
               {
                 id: uuidv4(),
-                name: 'dateTime',
-                type: FieldMetadataType.TEXT,
-                label: 'Thời gian bắt đầu (ISO)',
-                placeholder: '2026-09-20T10:00:00+07:00',
+                name: 'interviewDate',
+                type: FieldMetadataType.DATE,
+                label: 'Ngày phỏng vấn',
+                placeholder: '2026-09-20',
               },
               {
                 id: uuidv4(),
-                name: 'endTime',
-                type: FieldMetadataType.TEXT,
-                label: 'Thời gian kết thúc (ISO)',
-                placeholder: '2026-09-20T11:00:00+07:00',
+                name: 'startHour',
+                type: FieldMetadataType.NUMBER,
+                label: 'Giờ bắt đầu (0-23)',
+                placeholder: '10',
+              },
+              {
+                id: uuidv4(),
+                name: 'startMinute',
+                type: FieldMetadataType.NUMBER,
+                label: 'Phút bắt đầu (0-59)',
+                placeholder: '0',
+              },
+              {
+                id: uuidv4(),
+                name: 'endHour',
+                type: FieldMetadataType.NUMBER,
+                label: 'Giờ kết thúc (0-23)',
+                placeholder: '11',
+              },
+              {
+                id: uuidv4(),
+                name: 'endMinute',
+                type: FieldMetadataType.NUMBER,
+                label: 'Phút kết thúc (0-59)',
+                placeholder: '0',
               },
               {
                 id: uuidv4(),
@@ -178,23 +205,124 @@ export class HrScheduleInterviewWorkflowTemplateBuilder
                 isLeaf: true,
                 value: 'HR Interviewer',
               },
-              dateTime: {
-                type: FieldMetadataType.TEXT,
-                label: 'Thời gian bắt đầu (ISO)',
+              interviewDate: {
+                type: FieldMetadataType.DATE,
+                label: 'Ngày phỏng vấn',
                 isLeaf: true,
-                value: '2026-09-20T10:00:00+07:00',
+                value: '2026-09-20',
               },
-              endTime: {
-                type: FieldMetadataType.TEXT,
-                label: 'Thời gian kết thúc (ISO)',
+              startHour: {
+                type: FieldMetadataType.NUMBER,
+                label: 'Giờ bắt đầu (0-23)',
                 isLeaf: true,
-                value: '2026-09-20T11:00:00+07:00',
+                value: 10,
+              },
+              startMinute: {
+                type: FieldMetadataType.NUMBER,
+                label: 'Phút bắt đầu (0-59)',
+                isLeaf: true,
+                value: 0,
+              },
+              endHour: {
+                type: FieldMetadataType.NUMBER,
+                label: 'Giờ kết thúc (0-23)',
+                isLeaf: true,
+                value: 11,
+              },
+              endMinute: {
+                type: FieldMetadataType.NUMBER,
+                label: 'Phút kết thúc (0-59)',
+                isLeaf: true,
+                value: 0,
               },
               notes: {
                 type: FieldMetadataType.TEXT,
                 label: 'Ghi chú phỏng vấn',
                 isLeaf: true,
                 value: 'Phỏng vấn vòng 1',
+              },
+            },
+            errorHandlingOptions: ERROR_HANDLING_OPTIONS,
+          },
+          nextStepIds: [interviewScheduleStepId],
+        },
+        {
+          id: interviewScheduleStepId,
+          name: 'Kiểm tra & dựng khung giờ phỏng vấn',
+          type: WorkflowActionType.CODE,
+          valid: true,
+          position: { x: 0, y: 300 },
+          settings: {
+            input: {
+              logicFunctionId: interviewSchedule,
+              logicFunctionInput: {
+                interviewDate: `{{${formStepId}.interviewDate}}`,
+                startHour: `{{${formStepId}.startHour}}`,
+                startMinute: `{{${formStepId}.startMinute}}`,
+                endHour: `{{${formStepId}.endHour}}`,
+                endMinute: `{{${formStepId}.endMinute}}`,
+              },
+            },
+            outputSchema: {
+              interviewDate: {
+                type: FieldMetadataType.TEXT,
+                label: 'Ngày phỏng vấn',
+                isLeaf: true,
+                value: '2026-09-20',
+              },
+              startHour: {
+                type: FieldMetadataType.NUMBER,
+                label: 'Giờ bắt đầu',
+                isLeaf: true,
+                value: 10,
+              },
+              startMinute: {
+                type: FieldMetadataType.NUMBER,
+                label: 'Phút bắt đầu',
+                isLeaf: true,
+                value: 0,
+              },
+              endHour: {
+                type: FieldMetadataType.NUMBER,
+                label: 'Giờ kết thúc',
+                isLeaf: true,
+                value: 11,
+              },
+              endMinute: {
+                type: FieldMetadataType.NUMBER,
+                label: 'Phút kết thúc',
+                isLeaf: true,
+                value: 0,
+              },
+              startTime: {
+                type: FieldMetadataType.TEXT,
+                label: 'Thời gian bắt đầu',
+                isLeaf: true,
+                value: '10:00',
+              },
+              endTime: {
+                type: FieldMetadataType.TEXT,
+                label: 'Thời gian kết thúc',
+                isLeaf: true,
+                value: '11:00',
+              },
+              timeZone: {
+                type: FieldMetadataType.TEXT,
+                label: 'Time Zone',
+                isLeaf: true,
+                value: 'Asia/Ho_Chi_Minh',
+              },
+              startsAt: {
+                type: FieldMetadataType.TEXT,
+                label: 'Starts At (ISO)',
+                isLeaf: true,
+                value: '2026-09-20T10:00:00+07:00',
+              },
+              endsAt: {
+                type: FieldMetadataType.TEXT,
+                label: 'Ends At (ISO)',
+                isLeaf: true,
+                value: '2026-09-20T11:00:00+07:00',
               },
             },
             errorHandlingOptions: ERROR_HANDLING_OPTIONS,
@@ -206,14 +334,14 @@ export class HrScheduleInterviewWorkflowTemplateBuilder
           name: 'Tạo sự kiện Google Calendar & Google Meet',
           type: WorkflowActionType.CREATE_CALENDAR_EVENT,
           valid: true,
-          position: { x: 0, y: 300 },
+          position: { x: 0, y: 450 },
           settings: {
             input: {
               connectedAccountId: '',
               title: `Phỏng vấn {{${formStepId}.candidateName}} - {{${formStepId}.jobTitle}}`,
-              description: `Phỏng vấn {{${formStepId}.jobTitle}}. Người phỏng vấn: {{${formStepId}.interviewer}}. Ghi chú: {{${formStepId}.notes}}`,
-              startsAt: `{{${formStepId}.dateTime}}`,
-              endsAt: `{{${formStepId}.endTime}}`,
+              description: `Phỏng vấn {{${formStepId}.jobTitle}} vào {{${formStepId}.interviewDate}} ({{${interviewScheduleStepId}.startTime}} → {{${interviewScheduleStepId}.endTime}}). Người phỏng vấn: {{${formStepId}.interviewer}}. Ghi chú: {{${formStepId}.notes}}`,
+              startsAt: `{{${interviewScheduleStepId}.startsAt}}`,
+              endsAt: `{{${interviewScheduleStepId}.endsAt}}`,
               isFullDay: false,
               timeZone: 'Asia/Ho_Chi_Minh',
               attendees: `{{${formStepId}.candidateEmail}}`,
@@ -279,7 +407,7 @@ export class HrScheduleInterviewWorkflowTemplateBuilder
           name: 'Lưu phiên phỏng vấn trên CRM',
           type: WorkflowActionType.CREATE_RECORD,
           valid: true,
-          position: { x: 0, y: 450 },
+          position: { x: 0, y: 600 },
           settings: {
             input: {
               objectName: 'interview',
@@ -289,7 +417,7 @@ export class HrScheduleInterviewWorkflowTemplateBuilder
                 candidateEmail: `{{${formStepId}.candidateEmail}}`,
                 jobTitle: `{{${formStepId}.jobTitle}}`,
                 interviewer: `{{${formStepId}.interviewer}}`,
-                dateTime: `{{${calendarEventStepId}.startsAt}}`,
+                dateTime: `{{${interviewScheduleStepId}.startsAt}}`,
                 meetingLink: `{{${calendarEventStepId}.conferenceLink}}`,
                 status: 'SCHEDULED',
                 notes: `{{${formStepId}.notes}}`,
@@ -312,7 +440,7 @@ export class HrScheduleInterviewWorkflowTemplateBuilder
           name: 'Gửi Email thư mời phỏng vấn',
           type: WorkflowActionType.SEND_EMAIL,
           valid: true,
-          position: { x: 0, y: 600 },
+          position: { x: 0, y: 750 },
           settings: {
             input: {
               connectedAccountId: '',

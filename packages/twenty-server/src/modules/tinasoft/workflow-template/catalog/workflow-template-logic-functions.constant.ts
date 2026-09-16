@@ -365,6 +365,74 @@ const AHP_MATCHING_SOURCE = `export const main = async (params) => {
   };
 };`;
 
+const INTERVIEW_SCHEDULE_SOURCE = `export const main = async (params) => {
+  const rawDate = typeof params?.interviewDate === 'string' ? params.interviewDate.trim() : '';
+  const dateMatch = /^(\\d{4})-(\\d{2})-(\\d{2})$/.exec(rawDate);
+
+  if (!dateMatch) {
+    throw new Error('Ngày phỏng vấn không hợp lệ. Hãy chọn đúng ngày theo định dạng YYYY-MM-DD.');
+  }
+
+  const year = Number(dateMatch[1]);
+  const month = Number(dateMatch[2]);
+  const day = Number(dateMatch[3]);
+  const daysInMonth = [
+    31,
+    year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0) ? 29 : 28,
+    31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+  ];
+
+  if (month < 1 || month > 12 || day < 1 || day > daysInMonth[month - 1]) {
+    throw new Error('Ngày phỏng vấn không tồn tại. Vui lòng chọn lại một ngày hợp lệ.');
+  }
+
+  const toTimeNumber = (raw, fieldName) => {
+    const value = Number(raw);
+    if (!Number.isFinite(value) || Number.isNaN(value)) {
+      throw new Error('Giá trị ' + fieldName + ' không hợp lệ. Phải là số.');
+    }
+    return value;
+  };
+
+  const startHour = toTimeNumber(params?.startHour, 'Giờ bắt đầu');
+  const startMinute = toTimeNumber(params?.startMinute, 'Phút bắt đầu');
+  const endHour = toTimeNumber(params?.endHour, 'Giờ kết thúc');
+  const endMinute = toTimeNumber(params?.endMinute, 'Phút kết thúc');
+
+  if (startHour < 0 || startHour > 23 || endHour < 0 || endHour > 23) {
+    throw new Error('Giờ phỏng vấn phải nằm trong khoảng từ 0 đến 23.');
+  }
+
+  if (startMinute < 0 || startMinute > 59 || endMinute < 0 || endMinute > 59) {
+    throw new Error('Phút phỏng vấn phải nằm trong khoảng từ 0 đến 59.');
+  }
+
+  const startTotal = startHour * 60 + startMinute;
+  const endTotal = endHour * 60 + endMinute;
+
+  if (endTotal <= startTotal) {
+    throw new Error('Thời gian kết thúc phải sau thời gian bắt đầu.');
+  }
+
+  const pad = (value) => String(Math.floor(value)).padStart(2, '0');
+  const startTime = pad(startHour) + ':' + pad(startMinute);
+  const endTime = pad(endHour) + ':' + pad(endMinute);
+  const timeZone = 'Asia/Ho_Chi_Minh';
+
+  return {
+    interviewDate: rawDate,
+    startHour: pad(startHour),
+    startMinute: pad(startMinute),
+    endHour: pad(endHour),
+    endMinute: pad(endMinute),
+    startTime,
+    endTime,
+    timeZone,
+    startsAt: rawDate + 'T' + startTime + ':00+07:00',
+    endsAt: rawDate + 'T' + endTime + ':00+07:00',
+  };
+};`;
+
 export const getWorkflowTemplateLogicFunctionIds = (workspaceId: string) => ({
   filterExpiringOpportunities: uuidv5(
     `${workspaceId}:workflow-template:filter-expiring-opportunities:v2`,
@@ -386,6 +454,10 @@ export const getWorkflowTemplateLogicFunctionIds = (workspaceId: string) => ({
     `${workspaceId}:cv-intake:ahp-matching`,
     WORKFLOW_TEMPLATE_LOGIC_FUNCTION_NAMESPACE,
   ),
+  interviewSchedule: uuidv5(
+    `${workspaceId}:hr-interview:schedule-datetime`,
+    WORKFLOW_TEMPLATE_LOGIC_FUNCTION_NAMESPACE,
+  ),
 });
 
 export const getWorkflowTemplateLogicFunctionDefinitions = (
@@ -397,6 +469,7 @@ export const getWorkflowTemplateLogicFunctionDefinitions = (
     filterTodaysBirthdays,
     addOneDay,
     ahpMatching,
+    interviewSchedule,
   } = getWorkflowTemplateLogicFunctionIds(workspaceId);
 
   return [
@@ -433,6 +506,13 @@ export const getWorkflowTemplateLogicFunctionDefinitions = (
       description:
         'Bóc tách dữ liệu CV từ Webhook và chấm điểm độ phù hợp theo mô hình phân tích thứ bậc AHP.',
       sourceHandlerCode: AHP_MATCHING_SOURCE,
+    },
+    {
+      id: interviewSchedule,
+      name: 'Build interview ISO datetime slot from date and hour/minute fields',
+      description:
+        'Validates the interview date and hour/minute fields, ensures the end time is after the start time, and builds ISO 8601 datetime strings with the Asia/Ho_Chi_Minh offset.',
+      sourceHandlerCode: INTERVIEW_SCHEDULE_SOURCE,
     },
   ];
 };

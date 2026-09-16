@@ -122,7 +122,7 @@ describe('HR workflow templates', () => {
     ]);
   });
 
-  it('creates Interview scheduling workflow with FORM, CREATE_CALENDAR_EVENT, CREATE_RECORD, and SEND_EMAIL steps', () => {
+  it('creates Interview scheduling workflow with FORM, CODE, CREATE_CALENDAR_EVENT, CREATE_RECORD, and SEND_EMAIL steps', () => {
     const template = HR_WORKFLOW_TEMPLATES.find(
       ({ id }) => id === 'hr-schedule-interview',
     );
@@ -134,10 +134,44 @@ describe('HR workflow templates', () => {
     expect(definition?.trigger.type).toBe('MANUAL');
     expect(definition?.steps.map(({ type }) => type)).toEqual([
       'FORM',
+      'CODE',
       'CREATE_CALENDAR_EVENT',
       'CREATE_RECORD',
       'SEND_EMAIL',
     ]);
+
+    const formStep = definition?.steps.find(({ type }) => type === 'FORM');
+    const formFields = (
+      formStep?.settings as { input?: Array<{ name: string; type: string }> }
+    )?.input;
+    expect(formFields?.map(({ name }) => name)).toEqual(
+      expect.arrayContaining([
+        'interviewDate',
+        'startHour',
+        'startMinute',
+        'endHour',
+        'endMinute',
+      ]),
+    );
+    expect(
+      formFields?.find(({ name }) => name === 'interviewDate')?.type,
+    ).toBe('DATE');
+    for (const timeField of [
+      'startHour',
+      'startMinute',
+      'endHour',
+      'endMinute',
+    ]) {
+      expect(formFields?.find(({ name }) => name === timeField)?.type).toBe(
+        'NUMBER',
+      );
+    }
+
+    const codeStep = definition?.steps.find(({ type }) => type === 'CODE');
+    expect(
+      (codeStep?.settings as { input?: { logicFunctionId?: string } })?.input
+        ?.logicFunctionId,
+    ).toBeDefined();
 
     const calendarEventStep = definition?.steps.find(
       ({ type }) => type === 'CREATE_CALENDAR_EVENT',
