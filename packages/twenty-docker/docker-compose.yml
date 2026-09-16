@@ -1,0 +1,194 @@
+name: twenty
+
+services:
+  server:
+    image: twentycrm/twenty:${TAG:-latest}
+    build:
+      context: ../..
+      dockerfile: packages/twenty-docker/twenty/Dockerfile
+      target: twenty
+    volumes:
+      - server-local-data:/app/packages/twenty-server/.local-storage
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: development
+      NODE_PORT: 3000
+      PG_DATABASE_URL: postgres://${PG_DATABASE_USER:-postgres}:${PG_DATABASE_PASSWORD:-postgres}@${PG_DATABASE_HOST:-db}:${PG_DATABASE_PORT:-5432}/${PG_DATABASE_NAME:-default}
+      SERVER_URL: ${SERVER_URL}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      DISABLE_DB_MIGRATIONS: ${DISABLE_DB_MIGRATIONS:-false}
+      DISABLE_CRON_JOBS_REGISTRATION: ${DISABLE_CRON_JOBS_REGISTRATION:-false}
+
+      STORAGE_TYPE: ${STORAGE_TYPE:-local}
+      STORAGE_S3_REGION: ${STORAGE_S3_REGION}
+      STORAGE_S3_NAME: ${STORAGE_S3_NAME}
+      STORAGE_S3_ENDPOINT: ${STORAGE_S3_ENDPOINT}
+      STORAGE_S3_ACCESS_KEY_ID: ${STORAGE_S3_ACCESS_KEY_ID}
+      STORAGE_S3_SECRET_ACCESS_KEY: ${STORAGE_S3_SECRET_ACCESS_KEY}
+
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      FALLBACK_ENCRYPTION_KEY: ${FALLBACK_ENCRYPTION_KEY}
+      APP_SECRET: ${APP_SECRET:-}
+
+      # Workspace & UI Settings
+      SIGN_IN_PREFILLED: ${SIGN_IN_PREFILLED}
+      IS_WORKSPACE_CREATION_LIMITED_TO_SERVER_ADMINS: ${IS_WORKSPACE_CREATION_LIMITED_TO_SERVER_ADMINS}
+
+      # AI & LLM Settings
+      OPENCODE_API_KEY: ${OPENCODE_API_KEY}
+      AI_PROVIDERS: ${AI_PROVIDERS}
+      AI_MODELS_DEFAULT_FAST: ${AI_MODELS_DEFAULT_FAST}
+      AI_MODELS_DEFAULT_SMART: ${AI_MODELS_DEFAULT_SMART}
+      AI_MODELS_DEFAULT_RECOMMENDED: ${AI_MODELS_DEFAULT_RECOMMENDED}
+
+      # Logic Functions & Web Search
+      EXA_API_KEY: ${EXA_API_KEY}
+      LOGIC_FUNCTION_TYPE: ${LOGIC_FUNCTION_TYPE}
+
+      # Google OAuth & Providers
+      AUTH_GOOGLE_ENABLED: ${AUTH_GOOGLE_ENABLED}
+      AUTH_GOOGLE_CLIENT_ID: ${AUTH_GOOGLE_CLIENT_ID}
+      AUTH_GOOGLE_CLIENT_SECRET: ${AUTH_GOOGLE_CLIENT_SECRET}
+      AUTH_GOOGLE_CALLBACK_URL: ${AUTH_GOOGLE_CALLBACK_URL}
+      AUTH_GOOGLE_APIS_CALLBACK_URL: ${AUTH_GOOGLE_APIS_CALLBACK_URL}
+      MESSAGING_PROVIDER_GMAIL_ENABLED: ${MESSAGING_PROVIDER_GMAIL_ENABLED}
+      CALENDAR_PROVIDER_GOOGLE_ENABLED: ${CALENDAR_PROVIDER_GOOGLE_ENABLED}
+      IS_MULTIWORKSPACE_ENABLED: ${IS_MULTIWORKSPACE_ENABLED}
+
+      # CALENDAR_PROVIDER_MICROSOFT_ENABLED: ${CALENDAR_PROVIDER_MICROSOFT_ENABLED}
+      # MESSAGING_PROVIDER_MICROSOFT_ENABLED: ${MESSAGING_PROVIDER_MICROSOFT_ENABLED}
+      # AUTH_MICROSOFT_ENABLED: ${AUTH_MICROSOFT_ENABLED}
+      # AUTH_MICROSOFT_CLIENT_ID: ${AUTH_MICROSOFT_CLIENT_ID}
+      # AUTH_MICROSOFT_CLIENT_SECRET: ${AUTH_MICROSOFT_CLIENT_SECRET}
+      # AUTH_MICROSOFT_CALLBACK_URL: ${AUTH_MICROSOFT_CALLBACK_URL}
+      # AUTH_MICROSOFT_APIS_CALLBACK_URL: ${AUTH_MICROSOFT_APIS_CALLBACK_URL}
+
+      # EMAIL_FROM_ADDRESS: ${EMAIL_FROM_ADDRESS:-contact@yourdomain.com}
+      # EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-"John from YourDomain"}
+      # EMAIL_DRIVER: ${EMAIL_DRIVER:-smtp}
+      # EMAIL_SMTP_HOST: ${EMAIL_SMTP_HOST:-smtp.gmail.com}
+      # EMAIL_SMTP_PORT: ${EMAIL_SMTP_PORT:-465}
+      # EMAIL_SMTP_USER: ${EMAIL_SMTP_USER:-}
+      # EMAIL_SMTP_PASSWORD: ${EMAIL_SMTP_PASSWORD:-}
+
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: curl --fail http://localhost:3000/healthz
+      interval: 10s
+      timeout: 5s
+      retries: 40
+      start_period: 60s
+    restart: always
+
+  worker:
+    image: twentycrm/twenty:${TAG:-latest}
+    build:
+      context: ../..
+      dockerfile: packages/twenty-docker/twenty/Dockerfile
+      target: twenty
+    volumes:
+      - server-local-data:/app/packages/twenty-server/.local-storage
+    command: ["yarn", "worker:prod"]
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: development
+      PG_DATABASE_URL: postgres://${PG_DATABASE_USER:-postgres}:${PG_DATABASE_PASSWORD:-postgres}@${PG_DATABASE_HOST:-db}:${PG_DATABASE_PORT:-5432}/${PG_DATABASE_NAME:-default}
+      SERVER_URL: ${SERVER_URL}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      DISABLE_DB_MIGRATIONS: "true" # it already runs on the server
+      DISABLE_CRON_JOBS_REGISTRATION: "true" # it already runs on the server
+
+      STORAGE_TYPE: ${STORAGE_TYPE:-local}
+      STORAGE_S3_REGION: ${STORAGE_S3_REGION}
+      STORAGE_S3_NAME: ${STORAGE_S3_NAME}
+      STORAGE_S3_ENDPOINT: ${STORAGE_S3_ENDPOINT}
+      STORAGE_S3_ACCESS_KEY_ID: ${STORAGE_S3_ACCESS_KEY_ID}
+      STORAGE_S3_SECRET_ACCESS_KEY: ${STORAGE_S3_SECRET_ACCESS_KEY}
+
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      FALLBACK_ENCRYPTION_KEY: ${FALLBACK_ENCRYPTION_KEY}
+      APP_SECRET: ${APP_SECRET:-}
+
+      # AI & LLM Settings
+      OPENCODE_API_KEY: ${OPENCODE_API_KEY}
+      AI_PROVIDERS: ${AI_PROVIDERS}
+      AI_MODELS_DEFAULT_FAST: ${AI_MODELS_DEFAULT_FAST}
+      AI_MODELS_DEFAULT_SMART: ${AI_MODELS_DEFAULT_SMART}
+      AI_MODELS_DEFAULT_RECOMMENDED: ${AI_MODELS_DEFAULT_RECOMMENDED}
+
+      # Logic Functions & Web Search
+      EXA_API_KEY: ${EXA_API_KEY}
+      LOGIC_FUNCTION_TYPE: ${LOGIC_FUNCTION_TYPE}
+
+      # MESSAGING_PROVIDER_GMAIL_ENABLED: ${MESSAGING_PROVIDER_GMAIL_ENABLED}
+      # CALENDAR_PROVIDER_GOOGLE_ENABLED: ${CALENDAR_PROVIDER_GOOGLE_ENABLED}
+      # AUTH_GOOGLE_CLIENT_ID: ${AUTH_GOOGLE_CLIENT_ID}
+      # AUTH_GOOGLE_CLIENT_SECRET: ${AUTH_GOOGLE_CLIENT_SECRET}
+      # AUTH_GOOGLE_CALLBACK_URL: ${AUTH_GOOGLE_CALLBACK_URL}
+      # AUTH_GOOGLE_APIS_CALLBACK_URL: ${AUTH_GOOGLE_APIS_CALLBACK_URL}
+
+      # CALENDAR_PROVIDER_MICROSOFT_ENABLED: ${CALENDAR_PROVIDER_MICROSOFT_ENABLED}
+      # MESSAGING_PROVIDER_MICROSOFT_ENABLED: ${MESSAGING_PROVIDER_MICROSOFT_ENABLED}
+      # AUTH_MICROSOFT_ENABLED: ${AUTH_MICROSOFT_ENABLED}
+      # AUTH_MICROSOFT_CLIENT_ID: ${AUTH_MICROSOFT_CLIENT_ID}
+      # AUTH_MICROSOFT_CLIENT_SECRET: ${AUTH_MICROSOFT_CLIENT_SECRET}
+      # AUTH_MICROSOFT_CALLBACK_URL: ${AUTH_MICROSOFT_CALLBACK_URL}
+      # AUTH_MICROSOFT_APIS_CALLBACK_URL: ${AUTH_MICROSOFT_APIS_CALLBACK_URL}
+
+      # EMAIL_FROM_ADDRESS: ${EMAIL_FROM_ADDRESS:-contact@yourdomain.com}
+      # EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-"John from YourDomain"}
+      # EMAIL_DRIVER: ${EMAIL_DRIVER:-smtp}
+      # EMAIL_SMTP_HOST: ${EMAIL_SMTP_HOST:-smtp.gmail.com}
+      # EMAIL_SMTP_PORT: ${EMAIL_SMTP_PORT:-465}
+      # EMAIL_SMTP_USER: ${EMAIL_SMTP_USER:-}
+      # EMAIL_SMTP_PASSWORD: ${EMAIL_SMTP_PASSWORD:-}
+
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      server:
+        condition: service_healthy
+    restart: always
+
+  db:
+    image: postgres:16
+    ports:
+      - "${PG_DATABASE_HOST_PORT:-5434}:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${PG_DATABASE_NAME:-default}
+      POSTGRES_PASSWORD: ${PG_DATABASE_PASSWORD:-postgres}
+      POSTGRES_USER: ${PG_DATABASE_USER:-postgres}
+    healthcheck:
+      test: pg_isready -U ${PG_DATABASE_USER:-postgres} -h localhost -d ${PG_DATABASE_NAME:-default}
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: always
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+    restart: always
+    command: ["--maxmemory-policy", "noeviction"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  db-data:
+  server-local-data:

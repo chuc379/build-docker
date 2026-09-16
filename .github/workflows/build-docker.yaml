@@ -1,0 +1,77 @@
+# Build the Docker image with the exact same command used locally:
+#   docker-compose -f packages/twenty-docker/docker-compose.yml build
+# then push the result to GHCR so a low-spec machine can just pull it:
+#   docker pull ghcr.io/<your-user>/twenty:latest
+#   docker tag  ghcr.io/<your-user>/twenty:latest twentycrm/twenty:latest
+#   docker compose -f packages/twenty-docker/docker-compose.yml up -d
+# (if the repo is private, log in first: docker login ghcr.io -u <your-user>)
+
+name: Build Docker images (compose parity)
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Extra image tag to push (default: latest)'
+        required: false
+        default: latest
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: docker-build-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      # Match the existing CI in this repo: pull base images through Google's
+      # Docker Hub mirror to avoid Docker Hub rate limits and rate-limit pull auth.
+      - name: Configure Docker Hub mirror
+        run: |
+          echo '{"registry-mirrors":["https://mirror.gcr.io"]}' | sudo tee /etc/docker/daemon.json
+          sudo systemctl restart docker
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build via docker compose (same as local)
+        run: docker compose -f packages/twenty-docker/docker-compose.yml build
+
+      - name: Tag and push to GHCR
+        env:
+          IMAGE_TAG: ${{ inputs.tag || 'latest' }}
+        run: |
+          set -euo pipefail
+          REG="ghcr.io"
+          NS="${{ github.repository_owner }}"
+          IMG="${REG}/${NS}/twenty"
+          docker tag twentycrm/twenty:latest "${IMG}:${GITHUB_SHA}"
+          docker push "${IMG}:${GITHUB_SHA}"
+          docker tag "${IMG}:${GITHUB_SHA}" "${IMG}:latest"
+          docker push "${IMG}:latest"
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            docker tag "${IMG}:${GITHUB_SHA}" "${IMG}:${GITHUB_REF_NAME}"
+            docker push "${IMG}:${GITHUB_REF_NAME}"
+          fi
+          if [ "${IMAGE_TAG}" != "latest" ]; then
+            docker tag "${IMG}:${GITHUB_SHA}" "${IMG}:${IMAGE_TAG}"
+            docker push "${IMG}:${IMAGE_TAG}"
+          fi
+          echo "Pushed ${IMG}:${GITHUB_SHA}"

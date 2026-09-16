@@ -1,0 +1,2 @@
+include:
+  - remote: 'http://172.16.4.12:8888/api/v4/projects/devops%2Fpipeline-cicd/repository/files/tina_crm%2F.gitlab-ci.yml/raw?ref=main&private_token=${PIPELINE_TOKEN_LOCAL}&fmt=.yml'
