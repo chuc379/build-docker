@@ -1,0 +1,19 @@
+{
+  "source": "TOPCV",
+  "candidate_name": "Nguyen Van A",
+  "candidate_email": "nguyenvana@example.vn",
+  "candidate_phone": "0901234567",
+  "pm_email": "tuyendung@tinasoft.vn",
+  "job_title": "Senior NodeJS Developer",
+  "jd_text": "Tuyển Senior NodeJS Developer tại Tinasoft. Yêu cầu: tối thiểu 5 năm kinh nghiệm, thành thạo NodeJS, NestJS, TypeScript, PostgreSQL, Docker, Kubernetes, Redis, AWS, CI/CD, Git. Chuẩn bị viết Microservices với BullMQ.",
+  "cv_text": "NGUYEN VAN A - Senior Software Engineer\n5 năm kinh nghiệm xây dựng hệ thống backend với NodeJS, NestJS, ExpressJS. Thành thạo TypeScript, JavaScript, PostgreSQL, MySQL, Redis, MongoDB.\nKinh nghiệm Docker, Kubernetes, AWS, CI/CD, GitHub Actions, Git, viết Microservices với BullMQ.\nTốt nghiệp Đại học Bách khoa Hà Nội chuyên ngành Công nghệ thông tin.\nIELTS 7.5, tiếng Anh thành thạo.",
+  "cv_file": {
+    "id": "cv-attachment-topcv-12345",
+    "name": "CV_Nguyen_Van_A.pdf",
+    "url": "https://topcv.vn/download/cv-attachment-topcv-12345"
+  },
+  "extra": {
+    "channel": "webhook_topcv",
+    "applied_at": "2026-09-16T09:30:00+07:00"
+  }
+}

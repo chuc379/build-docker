@@ -3,6 +3,7 @@ import { CustomerBirthdayEmailWorkflowTemplateBuilder } from 'src/modules/tinaso
 import { FirstContactFollowUpWorkflowTemplateBuilder } from 'src/modules/tinasoft/workflow-template/services/builders/first-contact-follow-up.builder';
 import { HrCvIntakeMatchingWorkflowTemplateBuilder } from 'src/modules/tinasoft/workflow-template/services/builders/hr-cv-intake-matching.builder';
 import { HrGenerateJobDescriptionWorkflowTemplateBuilder } from 'src/modules/tinasoft/workflow-template/services/builders/hr-generate-job-description.builder';
+import { HrScheduleInterviewWorkflowTemplateBuilder } from 'src/modules/tinasoft/workflow-template/services/builders/hr-schedule-interview.builder';
 import { NewLeadAlertWorkflowTemplateBuilder } from 'src/modules/tinasoft/workflow-template/services/builders/new-lead-alert.builder';
 import { QuoteExpiryReminderWorkflowTemplateBuilder } from 'src/modules/tinasoft/workflow-template/services/builders/quote-expiry-reminder.builder';
 import { RepurchaseReminderWorkflowTemplateBuilder } from 'src/modules/tinasoft/workflow-template/services/builders/re-purchase-reminder.builder';
@@ -20,4 +21,5 @@ export const WORKFLOW_TEMPLATE_BUILDERS: readonly (new () => IWorkflowTemplateBu
     CustomerBirthdayEmailWorkflowTemplateBuilder,
     HrCvIntakeMatchingWorkflowTemplateBuilder,
     HrGenerateJobDescriptionWorkflowTemplateBuilder,
+    HrScheduleInterviewWorkflowTemplateBuilder,
   ];

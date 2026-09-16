@@ -14,7 +14,8 @@ export type WorkflowTemplateId =
   | 're-purchase-reminder'
   | 'customer-birthday-email'
   | 'hr-cv-intake-matching'
-  | 'hr-generate-job-description';
+  | 'hr-generate-job-description'
+  | 'hr-schedule-interview';
 
 export type WorkflowTemplateBuildContext = {
   settings: Record<string, unknown>;

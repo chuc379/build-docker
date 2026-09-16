@@ -15,6 +15,7 @@ import { buildSystemAuthContext } from 'src/engine/twenty-orm/utils/build-system
 import { WorkspaceOrmManager } from 'src/engine/twenty-orm/workspace-orm.manager';
 import { PrefillLogicFunctionService } from 'src/engine/workspace-manager/standard-objects-prefill-data/services/prefill-logic-function.service';
 import { prefillCandidateCustomObject } from 'src/engine/workspace-manager/standard-objects-prefill-data/utils/prefill-candidate-custom-object.util';
+import { prefillInterviewCustomObject } from 'src/engine/workspace-manager/standard-objects-prefill-data/utils/prefill-interview-custom-object.util';
 import { prefillJobCustomObject } from 'src/engine/workspace-manager/standard-objects-prefill-data/utils/prefill-job-custom-object.util';
 import { type WorkflowTemplateDTO } from 'src/modules/tinasoft/workflow-template/api/dtos/workflow-template.dto';
 import { getWorkflowTemplateLogicFunctionDefinitions } from 'src/modules/tinasoft/workflow-template/catalog/workflow-template-logic-functions.constant';
@@ -242,6 +243,14 @@ export class WorkflowTemplateWorkspaceService {
 
     if (templateId === 'hr-cv-intake-matching') {
       await prefillCandidateCustomObject({
+        workspaceId,
+        objectMetadataService: this.objectMetadataService,
+        fieldMetadataService: this.fieldMetadataService,
+      });
+    }
+
+    if (templateId === 'hr-schedule-interview') {
+      await prefillInterviewCustomObject({
         workspaceId,
         objectMetadataService: this.objectMetadataService,
         fieldMetadataService: this.fieldMetadataService,

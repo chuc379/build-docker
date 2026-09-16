@@ -1,5 +1,6 @@
 import { HrCvIntakeMatchingWorkflowTemplateBuilder } from 'src/modules/tinasoft/workflow-template/services/builders/hr-cv-intake-matching.builder';
 import { HrGenerateJobDescriptionWorkflowTemplateBuilder } from 'src/modules/tinasoft/workflow-template/services/builders/hr-generate-job-description.builder';
+import { HrScheduleInterviewWorkflowTemplateBuilder } from 'src/modules/tinasoft/workflow-template/services/builders/hr-schedule-interview.builder';
 import {
   workflowActionSchema,
   workflowTriggerSchema,
@@ -8,6 +9,7 @@ import {
 const hrBuilders = [
   new HrCvIntakeMatchingWorkflowTemplateBuilder(),
   new HrGenerateJobDescriptionWorkflowTemplateBuilder(),
+  new HrScheduleInterviewWorkflowTemplateBuilder(),
 ];
 
 const HR_WORKFLOW_TEMPLATES = hrBuilders.map((builder) => ({
@@ -47,12 +49,13 @@ const buildContext = (
 });
 
 describe('HR workflow templates', () => {
-  it('contains the 2 HR workflow templates with unique IDs', () => {
-    expect(HR_WORKFLOW_TEMPLATES).toHaveLength(2);
-    expect(new Set(HR_WORKFLOW_TEMPLATES.map(({ id }) => id)).size).toBe(2);
+  it('contains the 3 HR workflow templates with unique IDs', () => {
+    expect(HR_WORKFLOW_TEMPLATES).toHaveLength(3);
+    expect(new Set(HR_WORKFLOW_TEMPLATES.map(({ id }) => id)).size).toBe(3);
     expect(HR_WORKFLOW_TEMPLATES.map(({ id }) => id).sort()).toEqual([
       'hr-cv-intake-matching',
       'hr-generate-job-description',
+      'hr-schedule-interview',
     ]);
   });
 
@@ -117,5 +120,41 @@ describe('HR workflow templates', () => {
       'AI_AGENT',
       'CREATE_RECORD',
     ]);
+  });
+
+  it('creates Interview scheduling workflow with FORM, CREATE_CALENDAR_EVENT, CREATE_RECORD, and SEND_EMAIL steps', () => {
+    const template = HR_WORKFLOW_TEMPLATES.find(
+      ({ id }) => id === 'hr-schedule-interview',
+    );
+    expect(template).toBeDefined();
+
+    const definition = template?.build(
+      buildContext(template?.requiredSettings ?? []),
+    );
+    expect(definition?.trigger.type).toBe('MANUAL');
+    expect(definition?.steps.map(({ type }) => type)).toEqual([
+      'FORM',
+      'CREATE_CALENDAR_EVENT',
+      'CREATE_RECORD',
+      'SEND_EMAIL',
+    ]);
+
+    const calendarEventStep = definition?.steps.find(
+      ({ type }) => type === 'CREATE_CALENDAR_EVENT',
+    );
+    expect(
+      (
+        calendarEventStep?.settings as {
+          input?: { addConferencing?: boolean; attendees?: string };
+        }
+      )?.input?.addConferencing,
+    ).toBe(true);
+    expect(
+      (
+        calendarEventStep?.settings as {
+          input?: { attendees?: string };
+        }
+      )?.input?.attendees,
+    ).toContain('candidateEmail');
   });
 });
