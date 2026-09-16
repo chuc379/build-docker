@@ -126,7 +126,15 @@ describe('workflow template logic functions', () => {
         },
       ],
     });
-    it('builds an ISO interview slot from a DATE and hour/minute fields', async () => {
+    expect(openOpportunityResult).toEqual({
+      shouldCreateReminder: false,
+      daysSinceLastOrder: 0,
+      assigneeId: '',
+      reminders: [],
+    });
+  });
+
+  it('builds an ISO interview slot from a DATE and hour/minute fields', async () => {
     const main = getLogicFunctionByName(
       'Build interview ISO datetime slot from date and hour/minute fields',
     );
