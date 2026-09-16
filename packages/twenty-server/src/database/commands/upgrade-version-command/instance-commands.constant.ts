@@ -54,6 +54,7 @@ import { AddCalendarEndFieldMetadataIdToViewFastInstanceCommand } from 'src/data
 import { AddAutoUpgradeToApplicationFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-23/2-23-instance-command-fast-1784297307235-add-auto-upgrade-to-application';
 import { AddSdkClientCoreChecksumToApplicationFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-23/2-23-instance-command-fast-1784625638000-add-sdk-client-core-checksum-to-application';
 import { AddChannelWebhookSubscriptionExternalIdIndexesFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-25/2-25-instance-command-fast-1785173910915-add-channel-webhook-subscription-external-id-indexes';
+import { AddWorkspaceCountryCodeToWorkspaceFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-25/2-25-instance-command-fast-1787220000000-add-workspace-country-code-to-workspace';
 import { AddConnectedAccountHandleProviderIndexFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-26/2-26-instance-command-fast-1785420705255-add-connected-account-handle-provider-index';
 import { AddOpenRecordInToObjectMetadataFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-27/2-27-instance-command-fast-1785504900000-add-open-record-in-to-object-metadata';
 import { CreateUserSessionCoreTableFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-27/2-27-instance-command-fast-1785518325511-create-user-session-core-table';
@@ -288,6 +289,7 @@ export const INSTANCE_COMMANDS = [
   AddAppTokenSsoExchangeIndexFastInstanceCommand,
   AddPageLayoutCascadeDeleteIndexesFastInstanceCommand,
   AddChannelWebhookSubscriptionExternalIdIndexesFastInstanceCommand,
+  AddWorkspaceCountryCodeToWorkspaceFastInstanceCommand,
   AddIsHiddenToAgentMessageFastInstanceCommand,
   AddOnDisconnectLogicFunctionToConnectionProviderFastInstanceCommand,
   AddConnectedAccountHandleProviderIndexFastInstanceCommand,
