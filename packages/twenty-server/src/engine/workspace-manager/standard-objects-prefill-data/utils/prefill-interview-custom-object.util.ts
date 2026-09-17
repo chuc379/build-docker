@@ -6,6 +6,68 @@ import { type ObjectMetadataService } from 'src/engine/metadata-modules/object-m
 
 const INTERVIEW_OBJECT_NAME_SINGULAR = 'interview';
 
+const INTERVIEW_FIELDS: Array<{
+  type: FieldMetadataType;
+  name: string;
+  label: string;
+}> = [
+  {
+    type: FieldMetadataType.TEXT,
+    name: 'candidateName',
+    label: 'Candidate Name',
+  },
+  {
+    type: FieldMetadataType.TEXT,
+    name: 'candidateEmail',
+    label: 'Candidate Email',
+  },
+  {
+    type: FieldMetadataType.TEXT,
+    name: 'jobTitle',
+    label: 'Job Title',
+  },
+  {
+    type: FieldMetadataType.TEXT,
+    name: 'interviewer',
+    label: 'Interviewer',
+  },
+  {
+    type: FieldMetadataType.DATE_TIME,
+    name: 'dateTime',
+    label: 'Interview Time',
+  },
+  {
+    type: FieldMetadataType.TEXT,
+    name: 'meetingLink',
+    label: 'Google Meet Link',
+  },
+  {
+    type: FieldMetadataType.TEXT,
+    name: 'status',
+    label: 'Status',
+  },
+  {
+    type: FieldMetadataType.TEXT,
+    name: 'notes',
+    label: 'Notes',
+  },
+  {
+    type: FieldMetadataType.TEXT,
+    name: 'cc',
+    label: 'CC',
+  },
+  {
+    type: FieldMetadataType.TEXT,
+    name: 'bcc',
+    label: 'BCC',
+  },
+  {
+    type: FieldMetadataType.FILES,
+    name: 'signature',
+    label: 'Signature',
+  },
+];
+
 export const prefillInterviewCustomObject = async ({
   workspaceId,
   objectMetadataService,
@@ -20,74 +82,45 @@ export const prefillInterviewCustomObject = async ({
       where: { nameSingular: INTERVIEW_OBJECT_NAME_SINGULAR },
     });
 
-  if (isDefined(existingObject)) {
-    return;
+  const objectMetadata = isDefined(existingObject)
+    ? existingObject
+    : await objectMetadataService.createOneObject({
+        createObjectInput: {
+          nameSingular: INTERVIEW_OBJECT_NAME_SINGULAR,
+          namePlural: 'interviews',
+          labelSingular: 'Interview',
+          labelPlural: 'Interviews',
+          description:
+            'A scheduled job interview with a generated Google Meet link',
+          icon: 'IconCalendarEvent',
+        },
+        workspaceId,
+      });
+
+  const missingFields = [];
+
+  for (const field of INTERVIEW_FIELDS) {
+    const existingField = await fieldMetadataService.findOneWithinWorkspace(
+      workspaceId,
+      {
+        where: { objectMetadataId: objectMetadata.id, name: field.name },
+      },
+    );
+
+    if (!isDefined(existingField)) {
+      missingFields.push({
+        objectMetadataId: objectMetadata.id,
+        type: field.type,
+        name: field.name,
+        label: field.label,
+      });
+    }
   }
 
-  const createdObject = await objectMetadataService.createOneObject({
-    createObjectInput: {
-      nameSingular: INTERVIEW_OBJECT_NAME_SINGULAR,
-      namePlural: 'interviews',
-      labelSingular: 'Interview',
-      labelPlural: 'Interviews',
-      description:
-        'A scheduled job interview with a generated Google Meet link',
-      icon: 'IconCalendarEvent',
-    },
-    workspaceId,
-  });
-
-  await fieldMetadataService.createManyFields({
-    createFieldInputs: [
-      {
-        objectMetadataId: createdObject.id,
-        type: FieldMetadataType.TEXT,
-        name: 'candidateName',
-        label: 'Candidate Name',
-      },
-      {
-        objectMetadataId: createdObject.id,
-        type: FieldMetadataType.TEXT,
-        name: 'candidateEmail',
-        label: 'Candidate Email',
-      },
-      {
-        objectMetadataId: createdObject.id,
-        type: FieldMetadataType.TEXT,
-        name: 'jobTitle',
-        label: 'Job Title',
-      },
-      {
-        objectMetadataId: createdObject.id,
-        type: FieldMetadataType.TEXT,
-        name: 'interviewer',
-        label: 'Interviewer',
-      },
-      {
-        objectMetadataId: createdObject.id,
-        type: FieldMetadataType.DATE_TIME,
-        name: 'dateTime',
-        label: 'Interview Time',
-      },
-      {
-        objectMetadataId: createdObject.id,
-        type: FieldMetadataType.TEXT,
-        name: 'meetingLink',
-        label: 'Google Meet Link',
-      },
-      {
-        objectMetadataId: createdObject.id,
-        type: FieldMetadataType.TEXT,
-        name: 'status',
-        label: 'Status',
-      },
-      {
-        objectMetadataId: createdObject.id,
-        type: FieldMetadataType.TEXT,
-        name: 'notes',
-        label: 'Notes',
-      },
-    ],
-    workspaceId,
-  });
+  if (missingFields.length > 0) {
+    await fieldMetadataService.createManyFields({
+      createFieldInputs: missingFields,
+      workspaceId,
+    });
+  }
 };

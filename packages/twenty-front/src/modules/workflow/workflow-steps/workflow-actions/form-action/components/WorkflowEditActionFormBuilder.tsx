@@ -1,6 +1,9 @@
 import { FormFieldInputContainer } from '@/ui/input/components/FormFieldInputContainer';
 import { FormFieldInputInnerContainer } from '@/object-record/record-field/ui/form-types/components/FormFieldInputInnerContainer';
-import { FormFieldInputRowContainer } from '@/object-record/record-field/ui/form-types/components/FormFieldInputRowContainer';
+import {
+  FormFieldInputRowContainer,
+  LINE_HEIGHT,
+} from '@/object-record/record-field/ui/form-types/components/FormFieldInputRowContainer';
 import { FormFieldPlaceholder } from '@/object-record/record-field/ui/form-types/components/FormFieldPlaceholder';
 import { InputLabel, LightIconButton } from 'twenty-ui/input';
 import { DraggableItem } from '@/ui/layout/draggable-list/components/DraggableItem';
@@ -287,6 +290,15 @@ export const WorkflowEditActionFormBuilder = ({
                       (isFieldSelected(field.id) ||
                         isFieldHovered(field.id) ||
                         isDragging);
+                    const isMultilineText =
+                      field.type === FieldMetadataType.TEXT &&
+                      (isDefined(field.settings?.minRows) ||
+                        isDefined(field.settings?.maxRows));
+                    const textFieldMinHeight = isDefined(
+                      field.settings?.minRows,
+                    )
+                      ? field.settings.minRows * LINE_HEIGHT
+                      : 3 * LINE_HEIGHT;
 
                     return (
                       <StyledFormFieldContainer
@@ -310,10 +322,14 @@ export const WorkflowEditActionFormBuilder = ({
                         <StyledFormFieldInputContainerWrapper>
                           <InputLabel>{field.label || ''}</InputLabel>
 
-                          <FormFieldInputRowContainer>
+                          <FormFieldInputRowContainer
+                            multiline={isMultilineText}
+                            minHeight={textFieldMinHeight}
+                          >
                             <FormFieldInputInnerContainer
                               formFieldInputInstanceId={field.id}
                               hasRightElement={false}
+                              multiline={isMultilineText}
                               onClick={() => {
                                 handleFieldClick(field.id);
                               }}

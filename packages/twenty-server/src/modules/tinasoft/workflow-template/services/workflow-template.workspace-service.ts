@@ -256,6 +256,14 @@ export class WorkflowTemplateWorkspaceService {
         fieldMetadataService: this.fieldMetadataService,
       });
     }
+
+    if (templateId === 'hr-send-interview-email') {
+      await prefillInterviewCustomObject({
+        workspaceId,
+        objectMetadataService: this.objectMetadataService,
+        fieldMetadataService: this.fieldMetadataService,
+      });
+    }
   }
 
   private async ensureJobDescriptionAgentSeeded(workspaceId: string) {

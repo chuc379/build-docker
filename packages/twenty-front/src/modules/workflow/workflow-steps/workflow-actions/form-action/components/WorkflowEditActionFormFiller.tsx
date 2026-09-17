@@ -2,6 +2,7 @@ import { WorkflowStepCmdEnterButton } from '@/workflow/workflow-steps/components
 import { useSidePanelHistory } from '@/side-panel/hooks/useSidePanelHistory';
 import { FormFieldInput } from '@/object-record/record-field/ui/components/FormFieldInput';
 import { FormSingleRecordPicker } from '@/object-record/record-field/ui/form-types/components/FormSingleRecordPicker';
+import { FormTextFieldInput } from '@/object-record/record-field/ui/form-types/components/FormTextFieldInput';
 import { type FieldMetadata } from '@/object-record/record-field/ui/types/FieldMetadata';
 import { SidePanelFooter } from '@/ui/layout/side-panel/components/SidePanelFooter';
 import { useWorkflowRunIdOrThrow } from '@/workflow/hooks/useWorkflowRunIdOrThrow';
@@ -15,6 +16,7 @@ import { type WorkflowFormActionField } from '@/workflow/workflow-steps/workflow
 import { getDefaultFormFieldSettings } from '@/workflow/workflow-steps/workflow-actions/form-action/utils/getDefaultFormFieldSettings';
 import { useLingui } from '@lingui/react/macro';
 import { useEffect, useState } from 'react';
+import { FieldMetadataType } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
 import { useDebouncedCallback } from 'use-debounce';
 
@@ -145,6 +147,29 @@ export const WorkflowEditActionFormFiller = ({
                 fieldMetadataId={selectedFieldId}
                 defaultValue={field.value}
                 readonly={actionOptions.readonly}
+                onChange={(value) => {
+                  onFieldUpdate({
+                    fieldId: field.id,
+                    value,
+                  });
+                }}
+              />
+            );
+          }
+
+          if (field.type === FieldMetadataType.TEXT) {
+            return (
+              <FormTextFieldInput
+                key={field.id}
+                label={field.label}
+                defaultValue={field.value}
+                readonly={actionOptions.readonly}
+                placeholder={
+                  field.placeholder ??
+                  getDefaultFormFieldSettings(field.type).placeholder
+                }
+                minRows={field.settings?.minRows}
+                maxRows={field.settings?.maxRows}
                 onChange={(value) => {
                   onFieldUpdate({
                     fieldId: field.id,

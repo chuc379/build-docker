@@ -15,7 +15,8 @@ export type WorkflowTemplateId =
   | 'customer-birthday-email'
   | 'hr-cv-intake-matching'
   | 'hr-generate-job-description'
-  | 'hr-schedule-interview';
+  | 'hr-schedule-interview'
+  | 'hr-send-interview-email';
 
 export type WorkflowTemplateBuildContext = {
   settings: Record<string, unknown>;

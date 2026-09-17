@@ -1,6 +1,7 @@
 import { HrCvIntakeMatchingWorkflowTemplateBuilder } from 'src/modules/tinasoft/workflow-template/services/builders/hr-cv-intake-matching.builder';
 import { HrGenerateJobDescriptionWorkflowTemplateBuilder } from 'src/modules/tinasoft/workflow-template/services/builders/hr-generate-job-description.builder';
 import { HrScheduleInterviewWorkflowTemplateBuilder } from 'src/modules/tinasoft/workflow-template/services/builders/hr-schedule-interview.builder';
+import { HrSendInterviewEmailWorkflowTemplateBuilder } from 'src/modules/tinasoft/workflow-template/services/builders/hr-send-interview-email.builder';
 import {
   workflowActionSchema,
   workflowTriggerSchema,
@@ -10,6 +11,7 @@ const hrBuilders = [
   new HrCvIntakeMatchingWorkflowTemplateBuilder(),
   new HrGenerateJobDescriptionWorkflowTemplateBuilder(),
   new HrScheduleInterviewWorkflowTemplateBuilder(),
+  new HrSendInterviewEmailWorkflowTemplateBuilder(),
 ];
 
 const HR_WORKFLOW_TEMPLATES = hrBuilders.map((builder) => ({
@@ -50,12 +52,13 @@ const buildContext = (
 
 describe('HR workflow templates', () => {
   it('contains the 3 HR workflow templates with unique IDs', () => {
-    expect(HR_WORKFLOW_TEMPLATES).toHaveLength(3);
-    expect(new Set(HR_WORKFLOW_TEMPLATES.map(({ id }) => id)).size).toBe(3);
+    expect(HR_WORKFLOW_TEMPLATES).toHaveLength(4);
+    expect(new Set(HR_WORKFLOW_TEMPLATES.map(({ id }) => id)).size).toBe(4);
     expect(HR_WORKFLOW_TEMPLATES.map(({ id }) => id).sort()).toEqual([
       'hr-cv-intake-matching',
       'hr-generate-job-description',
       'hr-schedule-interview',
+      'hr-send-interview-email',
     ]);
   });
 

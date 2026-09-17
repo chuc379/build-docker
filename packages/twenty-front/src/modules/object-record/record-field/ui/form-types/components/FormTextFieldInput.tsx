@@ -9,6 +9,7 @@ import { Field } from 'twenty-ui/input';
 import { parseEditorContent } from '@/workflow/workflow-variables/utils/parseEditorContent';
 import { useId } from 'react';
 import { isDefined } from 'twenty-shared/utils';
+import { LINE_HEIGHT } from '@/object-record/record-field/ui/form-types/components/FormFieldInputRowContainer';
 
 type FormTextFieldInputProps = {
   label?: string;
@@ -18,6 +19,8 @@ type FormTextFieldInputProps = {
   onChange: (value: string) => void;
   onBlur?: () => void;
   multiline?: boolean;
+  minRows?: number;
+  maxRows?: number;
   readonly?: boolean;
   placeholder?: string;
   VariablePicker?: VariablePickerComponent;
@@ -32,14 +35,23 @@ export const FormTextFieldInput = ({
   onChange,
   onBlur,
   multiline,
+  minRows,
+  maxRows,
   readonly,
   VariablePicker,
 }: FormTextFieldInputProps) => {
   const instanceId = useId();
 
+  // When row bounds are provided, the input renders as a bounded multiline
+  // text area whose height follows the configured number of lines. Without
+  // them, the legacy single-line behavior is kept unchanged.
+  const isMultiline = multiline || isDefined(minRows) || isDefined(maxRows);
+  const minHeight = isDefined(minRows) ? minRows * LINE_HEIGHT : undefined;
+  const maxHeight = isDefined(maxRows) ? maxRows * LINE_HEIGHT : undefined;
+
   const editor = useTextVariableEditor({
     placeholder: placeholder ?? t`Enter text`,
-    multiline,
+    multiline: isMultiline,
     readonly,
     defaultValue,
     onUpdate: (editor) => {
@@ -68,16 +80,20 @@ export const FormTextFieldInput = ({
     <FormFieldInputContainer>
       {label ? <Field.Label>{label}</Field.Label> : null}
 
-      <FormFieldInputRowContainer multiline={multiline}>
+      <FormFieldInputRowContainer
+        multiline={isMultiline}
+        minHeight={minHeight}
+        maxHeight={maxHeight}
+      >
         <FormFieldInputInnerContainer
           formFieldInputInstanceId={instanceId}
           hasRightElement={isDefined(VariablePicker) && !readonly}
-          multiline={multiline}
+          multiline={isMultiline}
           onBlur={onBlur}
         >
           <TextVariableEditor
             editor={editor}
-            multiline={multiline}
+            multiline={isMultiline}
             readonly={readonly}
           />
         </FormFieldInputInnerContainer>
@@ -85,7 +101,7 @@ export const FormTextFieldInput = ({
         {VariablePicker && !readonly ? (
           <VariablePicker
             instanceId={instanceId}
-            multiline={multiline}
+            multiline={isMultiline}
             onVariableSelect={handleVariableTagInsert}
           />
         ) : null}

@@ -5,6 +5,7 @@ export const LINE_HEIGHT = 24;
 const StyledFormFieldInputRowContainer = styled.div<{
   multiline?: boolean;
   maxHeight?: number;
+  minHeight?: number;
 }>`
   display: flex;
   flex-direction: row;
@@ -14,8 +15,8 @@ const StyledFormFieldInputRowContainer = styled.div<{
     multiline ? `${LINE_HEIGHT}px` : 'normal'};
   max-height: ${({ multiline, maxHeight }) =>
     multiline ? `${maxHeight ?? 5 * LINE_HEIGHT}px` : 'none'};
-  min-height: ${({ multiline }) =>
-    multiline ? `${3 * LINE_HEIGHT}px` : 'auto'};
+  min-height: ${({ multiline, minHeight }) =>
+    multiline ? `${minHeight ?? 3 * LINE_HEIGHT}px` : 'auto'};
   position: relative;
 `;
 
