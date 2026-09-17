@@ -10,6 +10,7 @@ const INTERVIEW_FIELDS: Array<{
   type: FieldMetadataType;
   name: string;
   label: string;
+  settings?: { maxNumberOfValues?: number };
 }> = [
   {
     type: FieldMetadataType.TEXT,
@@ -65,6 +66,7 @@ const INTERVIEW_FIELDS: Array<{
     type: FieldMetadataType.FILES,
     name: 'signature',
     label: 'Signature',
+    settings: { maxNumberOfValues: 1 },
   },
 ];
 
@@ -113,6 +115,7 @@ export const prefillInterviewCustomObject = async ({
         type: field.type,
         name: field.name,
         label: field.label,
+        settings: field.settings,
       });
     }
   }
