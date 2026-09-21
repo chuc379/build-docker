@@ -1,12 +1,11 @@
-import { Injectable } from '@nestjs/common';
 import { type I18n } from '@lingui/core';
+import { Injectable } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 
-import { FieldMetadataType } from 'twenty-shared/types';
 import { WorkflowActionType } from 'twenty-shared/workflow';
 
-import { getWorkflowTemplateLogicFunctionIds } from 'src/modules/tinasoft/workflow-template/catalog/workflow-template-logic-functions.constant';
 import { WorkflowTemplateDTO } from 'src/modules/tinasoft/workflow-template/api/dtos/workflow-template.dto';
+import { getWorkflowTemplateLogicFunctionIds } from 'src/modules/tinasoft/workflow-template/catalog/workflow-template-logic-functions.constant';
 import { IWorkflowTemplateBuilder } from 'src/modules/tinasoft/workflow-template/services/builders/workflow-template.builder.interface';
 import {
   type WorkflowTemplateBuildContext,
@@ -71,27 +70,7 @@ export class HrSendInterviewEmailWorkflowTemplateBuilder
         name: 'Khởi chạy thủ công',
         type: WorkflowTriggerType.MANUAL,
         settings: {
-          outputSchema: {
-            record: {
-              type: 'RECORD',
-              label: 'Hồ sơ phỏng vấn',
-              isLeaf: false,
-              value: {
-                id: `{{trigger.record.id}}`,
-                candidateName: `{{trigger.record.candidateName}}`,
-                candidateEmail: `{{trigger.record.candidateEmail}}`,
-                cc: `{{trigger.record.cc}}`,
-                bcc: `{{trigger.record.bcc}}`,
-                jobTitle: `{{trigger.record.jobTitle}}`,
-                interviewer: `{{trigger.record.interviewer}}`,
-                dateTime: `{{trigger.record.dateTime}}`,
-                timeZone: `{{trigger.record.timeZone}}`,
-                meetingLink: `{{trigger.record.meetingLink}}`,
-                notes: `{{trigger.record.notes}}`,
-                signature: `{{trigger.record.signature}}`,
-              },
-            },
-          },
+          outputSchema: {},
           icon: 'IconMail',
           availability: {
             type: 'SINGLE_RECORD',
@@ -119,14 +98,13 @@ export class HrSendInterviewEmailWorkflowTemplateBuilder
             },
             outputSchema: {
               signatureHtml: {
-                type: FieldMetadataType.TEXT,
+                type: 'TEXT',
                 label: 'Khối ký duyệt (HTML)',
                 isLeaf: true,
-                value:
-                  '<div style="margin-top: 20px;">Ký duyệt xác nhận phỏng vấn</div>',
+                value: '<div style="margin-top: 20px;">Ký duyệt xác nhận phỏng vấn</div>',
               },
               hasSignature: {
-                type: FieldMetadataType.BOOLEAN,
+                type: 'BOOLEAN',
                 label: 'Có chữ ký',
                 isLeaf: true,
                 value: true,
@@ -155,9 +133,10 @@ export class HrSendInterviewEmailWorkflowTemplateBuilder
             },
             outputSchema: {
               result: {
-                type: 'RECORD',
-                fieldName: 'result',
+                type: 'TEXT',
+                label: 'Email result',
                 isLeaf: true,
+                value: 'sent',
               },
             },
             errorHandlingOptions: ERROR_HANDLING_OPTIONS,
