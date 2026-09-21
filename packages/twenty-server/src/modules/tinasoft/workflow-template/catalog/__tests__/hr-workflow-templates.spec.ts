@@ -125,7 +125,7 @@ describe('HR workflow templates', () => {
     ]);
   });
 
-  it('creates Interview scheduling workflow with FORM, CODE, CREATE_CALENDAR_EVENT, CREATE_RECORD, and SEND_EMAIL steps', () => {
+  it('creates Interview scheduling workflow with FORM, CODE, CREATE_CALENDAR_EVENT, and CREATE_RECORD steps', () => {
     const template = HR_WORKFLOW_TEMPLATES.find(
       ({ id }) => id === 'hr-schedule-interview',
     );
@@ -140,7 +140,6 @@ describe('HR workflow templates', () => {
       'CODE',
       'CREATE_CALENDAR_EVENT',
       'CREATE_RECORD',
-      'SEND_EMAIL',
     ]);
 
     const formStep = definition?.steps.find(({ type }) => type === 'FORM');
@@ -193,5 +192,47 @@ describe('HR workflow templates', () => {
         }
       )?.input?.attendees,
     ).toContain('candidateEmail');
+  });
+
+  it('creates Interview email workflow with FORM, FIND_RECORDS, CODE, and SEND_EMAIL steps', () => {
+    const template = HR_WORKFLOW_TEMPLATES.find(
+      ({ id }) => id === 'hr-send-interview-email',
+    );
+    expect(template).toBeDefined();
+
+    const definition = template?.build(
+      buildContext(template?.requiredSettings ?? []),
+    );
+    expect(definition?.trigger.type).toBe('MANUAL');
+    expect(definition?.steps.map(({ type }) => type)).toEqual([
+      'FORM',
+      'FIND_RECORDS',
+      'CODE',
+      'SEND_EMAIL',
+    ]);
+
+    const codeStep = definition?.steps.find(({ type }) => type === 'CODE');
+    expect(
+      (codeStep?.settings as { input?: { logicFunctionId?: string } })?.input
+        ?.logicFunctionId,
+    ).toBeDefined();
+    expect(
+      (
+        codeStep?.settings as {
+          input?: { logicFunctionInput?: { signature?: string } };
+        }
+      )?.input?.logicFunctionInput?.signature,
+    ).toContain('signature');
+
+    const sendEmailStep = definition?.steps.find(
+      ({ type }) => type === 'SEND_EMAIL',
+    );
+    expect(
+      (sendEmailStep?.settings as { input?: { files?: unknown[] } })?.input
+        ?.files,
+    ).toBeUndefined();
+    expect(
+      (sendEmailStep?.settings as { input?: { body?: string } })?.input?.body,
+    ).toContain('signatureHtml');
   });
 });

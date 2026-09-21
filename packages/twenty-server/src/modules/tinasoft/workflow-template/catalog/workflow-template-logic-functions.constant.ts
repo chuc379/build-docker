@@ -433,6 +433,149 @@ const INTERVIEW_SCHEDULE_SOURCE = `export const main = async (params) => {
   };
 };`;
 
+const EMBED_INTERVIEW_SIGNATURE_SOURCE = `const MAX_EMBEDDED_IMAGE_BYTES = 5 * 1024 * 1024;
+
+const guessMimeFromUrl = (url) => {
+  const clean = String(url || '').split('?')[0].toLowerCase();
+  if (clean.endsWith('.png')) return 'image/png';
+  if (clean.endsWith('.jpg') || clean.endsWith('.jpeg')) return 'image/jpeg';
+  if (clean.endsWith('.gif')) return 'image/gif';
+  if (clean.endsWith('.webp')) return 'image/webp';
+  if (clean.endsWith('.svg')) return 'image/svg+xml';
+  return 'application/octet-stream';
+};
+
+const escapeHtml = (value) =>
+  String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+
+const resolveFileUrl = (url) => {
+  const apiUrl = String(process.env.API_URL || '');
+  if (typeof url === 'string' && url.startsWith('/') && apiUrl) {
+    return apiUrl.replace(/\\/$/, '') + url;
+  }
+  return url;
+};
+
+export const main = async (params) => {
+  const emptyResult = {
+    signatureHtml: '',
+    hasSignature: false,
+    signerName: '',
+    fileId: '',
+    fileName: '',
+    url: '',
+    mimeType: '',
+    signatureEmbedMode: 'none',
+  };
+
+  const signerName =
+    typeof params?.signerName === 'string' ? params.signerName.trim() : '';
+  const interviewDate =
+    typeof params?.dateTime === 'string' ? params.dateTime.trim() : '';
+
+  let files = params?.signature;
+  if (typeof files === 'string' && files.trim() !== '') {
+    try {
+      files = JSON.parse(files);
+    } catch (_) {
+      files = null;
+    }
+  }
+
+  if (!Array.isArray(files) || files.length === 0) {
+    return emptyResult;
+  }
+
+  const file = files[0];
+  const rawUrl =
+    typeof file?.url === 'string' ? resolveFileUrl(file.url) : '';
+  const fileId =
+    typeof file?.fileId === 'string'
+      ? file.fileId
+      : typeof file?.id === 'string'
+        ? file.id
+        : '';
+  const fileName = typeof file?.name === 'string' ? file.name : '';
+  const declaredType = typeof file?.type === 'string' ? file.type : '';
+  const mimeType =
+    declaredType && declaredType.includes('/')
+      ? declaredType
+      : guessMimeFromUrl(rawUrl);
+
+  let dataUri = '';
+  let signatureEmbedMode = 'none';
+
+  const imgStyle =
+    'max-width: 260px; max-height: 120px; object-fit: contain; display: block;';
+
+  if (rawUrl && typeof fetch === 'function') {
+    try {
+      const response = await fetch(rawUrl, { redirect: 'follow' });
+      if (response.ok) {
+        const buffer = Buffer.from(await response.arrayBuffer());
+        if (buffer.length > 0 && buffer.length <= MAX_EMBEDDED_IMAGE_BYTES) {
+          dataUri = 'data:' + mimeType + ';base64,' + buffer.toString('base64');
+          signatureEmbedMode = 'base64';
+        }
+      }
+    } catch (_) {}
+  }
+
+  let imageTag = '';
+  if (signatureEmbedMode === 'base64') {
+    imageTag =
+      '<img src="' +
+      dataUri +
+      '" alt="Chữ ký ' +
+      escapeHtml(signerName) +
+      '" style="' +
+      imgStyle +
+      '" />';
+  } else if (rawUrl) {
+    imageTag =
+      '<img src="' +
+      escapeHtml(rawUrl) +
+      '" alt="Chữ ký ' +
+      escapeHtml(signerName) +
+      '" style="' +
+      imgStyle +
+      '" />';
+    signatureEmbedMode = 'url';
+  } else {
+    return emptyResult;
+  }
+
+  const signerLine = escapeHtml(signerName)
+    ? ' - ' + escapeHtml(signerName)
+    : '';
+  const header =
+    '<div style="font-size: 12px; color: #64748b; margin-bottom: 4px;">' +
+    'Ký duyệt xác nhận phỏng vấn' +
+    signerLine +
+    (interviewDate ? ' - ' + escapeHtml(interviewDate) : '') +
+    '</div>';
+
+  return {
+    signatureHtml:
+      '<div style="margin-top: 20px; padding-top: 12px; border-top: 1px solid #e2e8f0;">' +
+      header +
+      '<div style="margin-top: 6px;">' +
+      imageTag +
+      '</div></div>',
+    hasSignature: true,
+    signerName,
+    fileId,
+    fileName,
+    url: rawUrl,
+    mimeType,
+    signatureEmbedMode,
+  };
+};`;
+
 export const getWorkflowTemplateLogicFunctionIds = (workspaceId: string) => ({
   filterExpiringOpportunities: uuidv5(
     `${workspaceId}:workflow-template:filter-expiring-opportunities:v2`,
@@ -458,6 +601,10 @@ export const getWorkflowTemplateLogicFunctionIds = (workspaceId: string) => ({
     `${workspaceId}:hr-interview:schedule-datetime`,
     WORKFLOW_TEMPLATE_LOGIC_FUNCTION_NAMESPACE,
   ),
+  interviewSignature: uuidv5(
+    `${workspaceId}:hr-interview:embed-signature`,
+    WORKFLOW_TEMPLATE_LOGIC_FUNCTION_NAMESPACE,
+  ),
 });
 
 export const getWorkflowTemplateLogicFunctionDefinitions = (
@@ -470,6 +617,7 @@ export const getWorkflowTemplateLogicFunctionDefinitions = (
     addOneDay,
     ahpMatching,
     interviewSchedule,
+    interviewSignature,
   } = getWorkflowTemplateLogicFunctionIds(workspaceId);
 
   return [
@@ -513,6 +661,13 @@ export const getWorkflowTemplateLogicFunctionDefinitions = (
       description:
         'Validates the interview date and hour/minute fields, ensures the end time is after the start time, and builds ISO 8601 datetime strings with the Asia/Ho_Chi_Minh offset.',
       sourceHandlerCode: INTERVIEW_SCHEDULE_SOURCE,
+    },
+    {
+      id: interviewSignature,
+      name: 'Embed interview approval signature image into email HTML',
+      description:
+        'Reads the signature FILES field of an interview record, downloads the signature image, embeds it as a base64 data URI and appends an approval block at the end of the email HTML.',
+      sourceHandlerCode: EMBED_INTERVIEW_SIGNATURE_SOURCE,
     },
   ];
 };
