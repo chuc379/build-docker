@@ -54,11 +54,11 @@ export class HrSendInterviewEmailWorkflowTemplateBuilder
   </div>
   <div style="background: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 16px;">
     <h3>👤 {{trigger.record.candidateName ?? ''}}</h3>
-    <p>Vị trí ứng tuyển: <strong style="color: #2563eb;">{{${jobTitleTemplate}}</strong></p>
-    <p>📅 Thời gian: <strong>{{${dateTimeTemplate}}</strong></p>
-    <p>🧭 Múi giờ: <strong>{{${timeZoneTemplate}}</strong></p>
-    <p>👥 Người phỏng vấn: {{${interviewerTemplate}}</p>
-    <p>🔗 Link phỏng vấn: <a href="{{${meetingLinkTemplate}}">{{${meetingLinkTemplate}}</a></p>
+    <p>Vị trí ứng tuyển: <strong style="color: #2563eb;">{{trigger.record.jobTitle}}</strong></p>
+    <p>📅 Thời gian: <strong>{{trigger.record.dateTime}}</strong></p>
+    <p>🧭 Múi giờ: <strong>{{trigger.record.timeZone}}</strong></p>
+    <p>👥 Người phỏng vấn: {{trigger.record.interviewer}}</p>
+    <p>🔗 Link phỏng vấn: <a href="{{trigger.record.meetingLink}}">{{trigger.record.meetingLink}}</a></p>
   </div>
   <div style="background: #ffffff; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 16px;">
     {{${signatureStepId}.signatureHtml}}
