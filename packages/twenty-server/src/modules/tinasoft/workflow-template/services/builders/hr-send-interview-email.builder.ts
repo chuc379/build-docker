@@ -53,7 +53,7 @@ export class HrSendInterviewEmailWorkflowTemplateBuilder
     <p style="margin: 0; font-size: 14px;">Xác nhận lịch phỏng vấn</p>
   </div>
   <div style="background: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 16px;">
-    <h3>👤 {{${trigger.record.candidateName ?? ''}}}</h3>
+    <h3>👤 {{trigger.record.candidateName ?? ''}}</h3>
     <p>Vị trí ứng tuyển: <strong style="color: #2563eb;">{{${jobTitleTemplate}}</strong></p>
     <p>📅 Thời gian: <strong>{{${dateTimeTemplate}}</strong></p>
     <p>🧭 Múi giờ: <strong>{{${timeZoneTemplate}}</strong></p>
