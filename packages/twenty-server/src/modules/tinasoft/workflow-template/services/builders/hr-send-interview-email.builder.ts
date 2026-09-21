@@ -41,8 +41,6 @@ export class HrSendInterviewEmailWorkflowTemplateBuilder
     settings: _settings,
     workspaceId,
   }: WorkflowTemplateBuildContext): WorkflowTemplateDefinition {
-    const formStepId = uuidv4();
-    const findStepId = uuidv4();
     const signatureStepId = uuidv4();
     const sendEmailStepId = uuidv4();
     const { interviewSignature } = getWorkflowTemplateLogicFunctionIds(
@@ -55,15 +53,12 @@ export class HrSendInterviewEmailWorkflowTemplateBuilder
     <p style="margin: 0; font-size: 14px;">Xác nhận lịch phỏng vấn</p>
   </div>
   <div style="background: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 16px;">
-    <h3>👤 {{${findStepId}.first.candidateName}}</h3>
-    <p>Vị trí ứng tuyển: <strong style="color: #2563eb;">{{${findStepId}.first.jobTitle}}</strong></p>
-    <p>📅 Thời gian: <strong>{{${findStepId}.first.dateTime}}</strong></p>
-    <p>🧭 Múi giờ: {{${findStepId}.first.timeZone}}</p>
-    <p>👥 Người phỏng vấn: {{${findStepId}.first.interviewer}}</p>
-    <p>🔗 Link phỏng vấn: <a href="{{${findStepId}.first.meetingLink}}">{{${findStepId}.first.meetingLink}}</a></p>
-  </div>
-  <div style="background: #ffffff; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0;">
-    <p style="margin: 0; font-size: 13px; color: #475569;">📝 Ghi chú: {{${findStepId}.first.notes}}</p>
+    <h3>👤 {{${trigger.record.candidateName ?? ''}}}</h3>
+    <p>Vị trí ứng tuyển: <strong style="color: #2563eb;">{{${jobTitleTemplate}}</strong></p>
+    <p>📅 Thời gian: <strong>{{${dateTimeTemplate}}</strong></p>
+    <p>🧭 Múi giờ: <strong>{{${timeZoneTemplate}}</strong></p>
+    <p>👥 Người phỏng vấn: {{${interviewerTemplate}}</p>
+    <p>🔗 Link phỏng vấn: <a href="{{${meetingLinkTemplate}}">{{${meetingLinkTemplate}}</a></p>
   </div>
   <div style="background: #ffffff; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 16px;">
     {{${signatureStepId}.signatureHtml}}
@@ -76,103 +71,50 @@ export class HrSendInterviewEmailWorkflowTemplateBuilder
         name: 'Khởi chạy thủ công',
         type: WorkflowTriggerType.MANUAL,
         settings: {
-          outputSchema: {},
+          outputSchema: {
+            record: {
+              type: 'RECORD',
+              label: 'Hồ sơ phỏng vấn',
+              isLeaf: false,
+              value: {
+                id: `{{trigger.record.id}}`,
+                candidateName: `{{trigger.record.candidateName}}`,
+                candidateEmail: `{{trigger.record.candidateEmail}}`,
+                cc: `{{trigger.record.cc}}`,
+                bcc: `{{trigger.record.bcc}}`,
+                jobTitle: `{{trigger.record.jobTitle}}`,
+                interviewer: `{{trigger.record.interviewer}}`,
+                dateTime: `{{trigger.record.dateTime}}`,
+                timeZone: `{{trigger.record.timeZone}}`,
+                meetingLink: `{{trigger.record.meetingLink}}`,
+                notes: `{{trigger.record.notes}}`,
+                signature: `{{trigger.record.signature}}`,
+              },
+            },
+          },
           icon: 'IconMail',
-          availability: { type: 'GLOBAL', locations: undefined },
+          availability: {
+            type: 'SINGLE_RECORD',
+            objectNameSingular: 'interview',
+          },
         },
         position: { x: 0, y: 0 },
-        nextStepIds: [formStepId],
+        nextStepIds: [signatureStepId],
       },
       steps: [
-        {
-          id: formStepId,
-          name: 'Chọn hồ sơ phỏng vấn',
-          type: WorkflowActionType.FORM,
-          valid: true,
-          position: { x: 0, y: 150 },
-          settings: {
-            input: [
-              {
-                id: uuidv4(),
-                name: 'interview',
-                type: 'RECORD',
-                label: 'Hồ sơ phỏng vấn',
-                settings: { objectName: 'interview' },
-              },
-            ],
-            outputSchema: {
-              interview: {
-                type: 'RECORD',
-                label: 'Hồ sơ phỏng vấn',
-                isLeaf: true,
-                value: {
-                  id: `{{${formStepId}.interview.id}}`,
-                },
-              },
-            },
-            errorHandlingOptions: ERROR_HANDLING_OPTIONS,
-          },
-          nextStepIds: [findStepId],
-        },
-        {
-          id: findStepId,
-          name: 'Lấy thông tin hồ sơ phỏng vấn',
-          type: WorkflowActionType.FIND_RECORDS,
-          valid: true,
-          position: { x: 0, y: 300 },
-          settings: {
-            input: {
-              objectName: 'interview',
-              limit: 1,
-              filter: {
-                recordFilters: [
-                  {
-                    fieldMetadataId: 'id',
-                    type: 'UUID',
-                    value: `{{${formStepId}.interview.id}}`,
-                    operand: 'IS',
-                  },
-                ],
-              },
-            },
-            outputSchema: {
-              first: {
-                type: 'RECORD',
-                fieldName: 'first',
-                isLeaf: false,
-                value: {
-                  id: `{{${findStepId}.first.id}}`,
-                  candidateName: `{{${findStepId}.first.candidateName}}`,
-                  candidateEmail: `{{${findStepId}.first.candidateEmail}}`,
-                  jobTitle: `{{${findStepId}.first.jobTitle}}`,
-                  interviewer: `{{${findStepId}.first.interviewer}}`,
-                  dateTime: `{{${findStepId}.first.dateTime}}`,
-                  timeZone: `{{${findStepId}.first.timeZone}}`,
-                  meetingLink: `{{${findStepId}.first.meetingLink}}`,
-                  notes: `{{${findStepId}.first.notes}}`,
-                  cc: `{{${findStepId}.first.cc}}`,
-                  bcc: `{{${findStepId}.first.bcc}}`,
-                  signature: `{{${findStepId}.first.signature}}`,
-                },
-              },
-            },
-            errorHandlingOptions: ERROR_HANDLING_OPTIONS,
-          },
-          nextStepIds: [signatureStepId],
-        },
         {
           id: signatureStepId,
           name: 'Ký duyệt: nhúng ảnh chữ ký vào thư',
           type: WorkflowActionType.CODE,
           valid: true,
-          position: { x: 0, y: 450 },
+          position: { x: 0, y: 150 },
           settings: {
             input: {
               logicFunctionId: interviewSignature,
               logicFunctionInput: {
-                signature: `{{${findStepId}.first.signature}}`,
-                signerName: `{{${findStepId}.first.interviewer}}`,
-                dateTime: `{{${findStepId}.first.dateTime}}`,
+                signature: `{{trigger.record.signature}}`,
+                signerName: `{{trigger.record.interviewer}}`,
+                dateTime: `{{trigger.record.dateTime}}`,
               },
             },
             outputSchema: {
@@ -199,16 +141,16 @@ export class HrSendInterviewEmailWorkflowTemplateBuilder
           name: 'Gửi email ký duyệt xác nhận phỏng vấn',
           type: WorkflowActionType.SEND_EMAIL,
           valid: true,
-          position: { x: 0, y: 600 },
+          position: { x: 0, y: 300 },
           settings: {
             input: {
               connectedAccountId: '',
               recipients: {
-                to: `{{${findStepId}.first.candidateEmail}}`,
-                cc: `{{${findStepId}.first.cc}}`,
-                bcc: `{{${findStepId}.first.bcc}}`,
+                to: `{{trigger.record.candidateEmail}}`,
+                cc: `{{trigger.record.cc}}`,
+                bcc: `{{trigger.record.bcc}}`,
               },
-              subject: `Xác nhận lịch phỏng vấn - {{${findStepId}.first.jobTitle}}`,
+              subject: `Xác nhận lịch phỏng vấn - {{trigger.record.jobTitle}}`,
               body: emailBody,
             },
             outputSchema: {
