@@ -55,7 +55,6 @@ export class HrSendInterviewEmailWorkflowTemplateBuilder
     <h3>👤 {{trigger.record.candidateName ?? ''}}</h3>
     <p>Vị trí ứng tuyển: <strong style="color: #2563eb;">{{trigger.record.jobTitle}}</strong></p>
     <p>📅 Thời gian: <strong>{{trigger.record.dateTime}}</strong></p>
-    <p>🧭 Múi giờ: <strong>{{trigger.record.timeZone}}</strong></p>
     <p>👥 Người phỏng vấn: {{trigger.record.interviewer}}</p>
     <p>🔗 Link phỏng vấn: <a href="{{trigger.record.meetingLink}}">{{trigger.record.meetingLink}}</a></p>
   </div>
@@ -70,7 +69,27 @@ export class HrSendInterviewEmailWorkflowTemplateBuilder
         name: 'Khởi chạy thủ công',
         type: WorkflowTriggerType.MANUAL,
         settings: {
-          outputSchema: {},
+          outputSchema: {
+            record: {
+              type: 'RECORD',
+              label: 'Interview',
+              isLeaf: false,
+              value: {
+                id: 'sample-id',
+                candidateName: 'John Doe',
+                candidateEmail: 'john@example.com',
+                cc: '',
+                bcc: '',
+                jobTitle: 'Software Engineer',
+                interviewer: 'HR Manager',
+                dateTime: '2026-09-22T03:00:00.000Z',
+                meetingLink: 'https://meet.google.com/example',
+                status: 'SCHEDULED',
+                notes: '',
+                signature: [],
+              },
+            },
+          },
           icon: 'IconMail',
           availability: {
             type: 'SINGLE_RECORD',
