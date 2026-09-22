@@ -26,11 +26,11 @@ export class HrSendInterviewEmailWorkflowTemplateBuilder
       id: this.id,
       name: 'Gửi email ký xác nhận phỏng vấn',
       description:
-        'Chọn một hồ sơ phỏng vấn đã có sẵn trên trigger SINGLE, hệ thống lấy thông tin ứng viên (email, CC, BCC) và ảnh chữ ký trên trường signature rồi nhúng khối ký duyệt vào cuối nội dung thư và gửi email xác nhận.',
+        'Chọn một hồ sơ phỏng vấn trên trigger SINGLE, hệ thống lấy thông tin ứng viên (email, CC, BCC) và ảnh chữ ký rồi nhúng khối ký duyệt vào cuối nội dung thư để gửi email xác nhận.',
       shortDescription:
         'Gửi email xác nhận phỏng vấn với ảnh chữ ký ký duyệt được nhúng vào cuối thư.',
       purpose:
-        'Tách bước gửi email xác nhận ra khỏi bước lên lịch: HR chọn hồ sơ phỏng vấn ngay ở trigger SINGLE và hệ thống tự động soạn thư với CC/BCC cùng khối ký duyệt (ảnh chữ ký nhúng trong HTML).',
+        'Tách bước gửi email xác nhận ra khỏi bước lên lịch: HR chọn hồ sơ phỏng vấn ngay ở trigger SINGLE và hệ thống tự động soạn thư với CC/BCC cùng khối ký duyệt.',
       category: 'Tuyển dụng & HR',
       icon: 'IconMail',
       requiredSettings: [],
@@ -147,8 +147,10 @@ export class HrSendInterviewEmailWorkflowTemplateBuilder
           icon: 'IconMail',
           availability: {
             type: 'SINGLE_RECORD',
+            objectNameSingular: 'person',
           },
         },
+        position: { x: 0, y: 0 },
         nextStepIds: [signatureStepId],
       },
       steps: [
@@ -191,28 +193,24 @@ export class HrSendInterviewEmailWorkflowTemplateBuilder
           name: 'Gửi email ký duyệt xác nhận phỏng vấn',
           type: WorkflowActionType.SEND_EMAIL,
           valid: true,
-          position: { x: 0, y: 400 },
+          position: { x: 0, y: 300 },
           settings: {
             input: {
               connectedAccountId: '{{trigger.properties.after.connectedAccountId}}',
               recipients: {
-                to: ['{{trigger.properties.after.candidateEmail}}'],
-                cc: ['{{trigger.properties.after.cc}}'],
-                bcc: ['{{trigger.properties.after.bcc}}'],
+                to: '{{trigger.properties.after.candidateEmail}}',
+                cc: '{{trigger.properties.after.cc}}',
+                bcc: '{{trigger.properties.after.bcc}}',
               },
               subject: 'Xác nhận lịch phỏng vấn - {{trigger.properties.after.jobTitle}}',
               body: emailBody,
+              files: [],
+              inReplyTo: '',
             },
-            outputSchema: {
-              result: {
-                type: FieldMetadataType.TEXT,
-                label: 'Email result',
-                isLeaf: true,
-                value: 'sent',
-              },
-            },
+            outputSchema: {},
             errorHandlingOptions: ERROR_HANDLING_OPTIONS,
           },
+          nextStepIds: [],
           __typename: 'WorkflowAction',
         },
       ],
