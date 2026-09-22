@@ -8,8 +8,8 @@ import { WorkflowTemplateDTO } from 'src/modules/tinasoft/workflow-template/api/
 import { getWorkflowTemplateLogicFunctionIds } from 'src/modules/tinasoft/workflow-template/catalog/workflow-template-logic-functions.constant';
 import { IWorkflowTemplateBuilder } from 'src/modules/tinasoft/workflow-template/services/builders/workflow-template.builder.interface';
 import {
-  type WorkflowTemplateBuildContext,
-  type WorkflowTemplateDefinition,
+    type WorkflowTemplateBuildContext,
+    type WorkflowTemplateDefinition,
 } from 'src/modules/tinasoft/workflow-template/types/workflow-template.type';
 import { ERROR_HANDLING_OPTIONS } from 'src/modules/tinasoft/workflow-template/utils/workflow-template-builder-helpers.util';
 import { WorkflowTriggerType } from 'src/modules/workflow/workflow-trigger/types/workflow-trigger.type';
@@ -40,6 +40,7 @@ export class HrSendInterviewEmailWorkflowTemplateBuilder
     settings: _settings,
     workspaceId,
   }: WorkflowTemplateBuildContext): WorkflowTemplateDefinition {
+    const formStepId = uuidv4();
     const signatureStepId = uuidv4();
     const sendEmailStepId = uuidv4();
     const { interviewSignature } = getWorkflowTemplateLogicFunctionIds(
@@ -52,11 +53,11 @@ export class HrSendInterviewEmailWorkflowTemplateBuilder
     <p style="margin: 0; font-size: 14px;">Xác nhận lịch phỏng vấn</p>
   </div>
   <div style="background: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 16px;">
-    <h3>👤 {{trigger.record.candidateName ?? ''}}</h3>
-    <p>Vị trí ứng tuyển: <strong style="color: #2563eb;">{{trigger.record.jobTitle}}</strong></p>
-    <p>📅 Thời gian: <strong>{{trigger.record.dateTime}}</strong></p>
-    <p>👥 Người phỏng vấn: {{trigger.record.interviewer}}</p>
-    <p>🔗 Link phỏng vấn: <a href="{{trigger.record.meetingLink}}">{{trigger.record.meetingLink}}</a></p>
+    <h3>👤 {{${formStepId}.candidateName ?? ''}}</h3>
+    <p>Vị trí ứng tuyển: <strong style="color: #2563eb;">{{${formStepId}.jobTitle}}</strong></p>
+    <p>📅 Thời gian: <strong>{{${formStepId}.dateTime}}</strong></p>
+    <p>👥 Người phỏng vấn: {{${formStepId}.interviewer}}</p>
+    <p>🔗 Link phỏng vấn: <a href="{{${formStepId}.meetingLink}}">{{${formStepId}.meetingLink}}</a></p>
   </div>
   <div style="background: #ffffff; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 16px;">
     {{${signatureStepId}.signatureHtml}}
@@ -69,50 +70,172 @@ export class HrSendInterviewEmailWorkflowTemplateBuilder
         name: 'Khởi chạy thủ công',
         type: WorkflowTriggerType.MANUAL,
         settings: {
-          outputSchema: {
-            record: {
-              type: 'RECORD',
-              label: 'Interview',
-              isLeaf: false,
-              value: {
-                id: 'sample-id',
-                candidateName: 'John Doe',
-                candidateEmail: 'john@example.com',
-                cc: '',
-                bcc: '',
-                jobTitle: 'Software Engineer',
-                interviewer: 'HR Manager',
-                dateTime: '2026-09-22T03:00:00.000Z',
-                meetingLink: 'https://meet.google.com/example',
-                status: 'SCHEDULED',
-                notes: '',
-                signature: [],
-              },
-            },
-          },
+          outputSchema: {},
           icon: 'IconMail',
-          availability: {
-            type: 'SINGLE_RECORD',
-            objectNameSingular: 'interview',
-          },
+          availability: { type: 'GLOBAL', locations: undefined },
         },
         position: { x: 0, y: 0 },
-        nextStepIds: [signatureStepId],
+        nextStepIds: [formStepId],
       },
       steps: [
+        {
+          id: formStepId,
+          name: 'Chọn hồ sơ phỏng vấn',
+          type: WorkflowActionType.FORM,
+          valid: true,
+          position: { x: 0, y: 150 },
+          settings: {
+            input: [
+              {
+                id: uuidv4(),
+                name: 'candidateName',
+                type: 'TEXT',
+                label: 'Tên ứng viên',
+                placeholder: 'John Doe',
+              },
+              {
+                id: uuidv4(),
+                name: 'candidateEmail',
+                type: 'TEXT',
+                label: 'Email ứng viên',
+                placeholder: 'john@example.com',
+              },
+              {
+                id: uuidv4(),
+                name: 'cc',
+                type: 'TEXT',
+                label: 'CC',
+                placeholder: 'cc@example.com',
+              },
+              {
+                id: uuidv4(),
+                name: 'bcc',
+                type: 'TEXT',
+                label: 'BCC',
+                placeholder: 'bcc@example.com',
+              },
+              {
+                id: uuidv4(),
+                name: 'jobTitle',
+                type: 'TEXT',
+                label: 'Vị trí ứng tuyển',
+                placeholder: 'Software Engineer',
+              },
+              {
+                id: uuidv4(),
+                name: 'interviewer',
+                type: 'TEXT',
+                label: 'Người phỏng vấn',
+                placeholder: 'HR Manager',
+              },
+              {
+                id: uuidv4(),
+                name: 'dateTime',
+                type: 'TEXT',
+                label: 'Ngày giờ phỏng vấn',
+                placeholder: '2026-09-22T03:00:00.000Z',
+              },
+              {
+                id: uuidv4(),
+                name: 'meetingLink',
+                type: 'TEXT',
+                label: 'Link phỏng vấn',
+                placeholder: 'https://meet.google.com/example',
+              },
+              {
+                id: uuidv4(),
+                name: 'signature',
+                type: 'TEXT',
+                label: 'Chữ ký (JSON array)',
+                placeholder: '[]',
+              },
+              {
+                id: uuidv4(),
+                name: 'connectedAccountId',
+                type: 'TEXT',
+                label: 'Connected Account ID',
+                placeholder: '',
+              },
+            ],
+            outputSchema: {
+              candidateName: {
+                type: 'TEXT',
+                label: 'Tên ứng viên',
+                isLeaf: true,
+                value: 'John Doe',
+              },
+              candidateEmail: {
+                type: 'TEXT',
+                label: 'Email ứng viên',
+                isLeaf: true,
+                value: 'john@example.com',
+              },
+              cc: {
+                type: 'TEXT',
+                label: 'CC',
+                isLeaf: true,
+                value: '',
+              },
+              bcc: {
+                type: 'TEXT',
+                label: 'BCC',
+                isLeaf: true,
+                value: '',
+              },
+              jobTitle: {
+                type: 'TEXT',
+                label: 'Vị trí ứng tuyển',
+                isLeaf: true,
+                value: 'Software Engineer',
+              },
+              interviewer: {
+                type: 'TEXT',
+                label: 'Người phỏng vấn',
+                isLeaf: true,
+                value: 'HR Manager',
+              },
+              dateTime: {
+                type: 'TEXT',
+                label: 'Ngày giờ phỏng vấn',
+                isLeaf: true,
+                value: '2026-09-22T03:00:00.000Z',
+              },
+              meetingLink: {
+                type: 'TEXT',
+                label: 'Link phỏng vấn',
+                isLeaf: true,
+                value: 'https://meet.google.com/example',
+              },
+              signature: {
+                type: 'TEXT',
+                label: 'Chữ ký',
+                isLeaf: true,
+                value: '[]',
+              },
+              connectedAccountId: {
+                type: 'TEXT',
+                label: 'Connected Account ID',
+                isLeaf: true,
+                value: '',
+              },
+            },
+            errorHandlingOptions: ERROR_HANDLING_OPTIONS,
+          },
+          nextStepIds: [signatureStepId],
+        },
         {
           id: signatureStepId,
           name: 'Ký duyệt: nhúng ảnh chữ ký vào thư',
           type: WorkflowActionType.CODE,
           valid: true,
-          position: { x: 0, y: 150 },
+          position: { x: 0, y: 300 },
           settings: {
             input: {
               logicFunctionId: interviewSignature,
               logicFunctionInput: {
-                signature: `{{trigger.record.signature}}`,
-                signerName: `{{trigger.record.interviewer}}`,
-                dateTime: `{{trigger.record.dateTime}}`,
+                signature: `{{${formStepId}.signature}}`,
+                signerName: `{{${formStepId}.interviewer}}`,
+                dateTime: `{{${formStepId}.dateTime}}`,
               },
             },
             outputSchema: {
@@ -138,16 +261,16 @@ export class HrSendInterviewEmailWorkflowTemplateBuilder
           name: 'Gửi email ký duyệt xác nhận phỏng vấn',
           type: WorkflowActionType.SEND_EMAIL,
           valid: true,
-          position: { x: 0, y: 300 },
+          position: { x: 0, y: 450 },
           settings: {
             input: {
-              connectedAccountId: '',
+              connectedAccountId: `{{${formStepId}.connectedAccountId}}`,
               recipients: {
-                to: `{{trigger.record.candidateEmail}}`,
-                cc: `{{trigger.record.cc}}`,
-                bcc: `{{trigger.record.bcc}}`,
+                to: `{{${formStepId}.candidateEmail}}`,
+                cc: `{{${formStepId}.cc}}`,
+                bcc: `{{${formStepId}.bcc}}`,
               },
-              subject: `Xác nhận lịch phỏng vấn - {{trigger.record.jobTitle}}`,
+              subject: `Xác nhận lịch phỏng vấn - {{${formStepId}.jobTitle}}`,
               body: emailBody,
             },
             outputSchema: {
