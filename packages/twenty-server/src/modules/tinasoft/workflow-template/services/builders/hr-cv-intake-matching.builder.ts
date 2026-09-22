@@ -1,6 +1,5 @@
-import { Injectable } from '@nestjs/common';
 import { type I18n } from '@lingui/core';
-import { msg } from '@lingui/core/macro';
+import { Injectable } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 
 import { FieldMetadataType } from 'twenty-shared/types';
@@ -14,218 +13,196 @@ import {
   type WorkflowTemplateDefinition,
 } from 'src/modules/tinasoft/workflow-template/types/workflow-template.type';
 import { ERROR_HANDLING_OPTIONS } from 'src/modules/tinasoft/workflow-template/utils/workflow-template-builder-helpers.util';
-import { getStringWorkflowTemplateSetting } from 'src/modules/tinasoft/workflow-template/utils/workflow-template-settings.util';
 import { WorkflowTriggerType } from 'src/modules/workflow/workflow-trigger/types/workflow-trigger.type';
 
 @Injectable()
-export class HrCvIntakeMatchingWorkflowTemplateBuilder
+export class HrSendInterviewEmailWorkflowTemplateBuilder
   implements IWorkflowTemplateBuilder
 {
-  readonly id = 'hr-cv-intake-matching' as const;
+  readonly id = 'hr-send-interview-email' as const;
 
-  getDTO(_workspaceDisplayName: string, i18n?: I18n): WorkflowTemplateDTO {
+  getDTO(_workspaceDisplayName: string, _i18n?: I18n): WorkflowTemplateDTO {
     return {
       id: this.id,
-      name: 'Tự động sàng lọc CV & Chấm điểm AHP',
+      name: 'Gửi email ký xác nhận phỏng vấn',
       description:
-        'Tự động tiếp nhận CV từ Webhook (TopCV, biểu mẫu tuyển dụng), trích xuất thông tin ứng viên, chấm điểm độ phù hợp theo mô hình AHP và gửi email báo cáo chi tiết cho PM/HR.',
+        'Chọn một hồ sơ phỏng vấn trên trigger SINGLE, hệ thống lấy thông tin ứng viên (email, CC, BCC) và ảnh chữ ký rồi nhúng khối ký duyệt vào cuối nội dung thư để gửi email xác nhận.',
       shortDescription:
-        'Tự động nhận hồ sơ ứng viên, chấm điểm AHP đa tiêu chí và báo cáo kết quả.',
+        'Gửi email xác nhận phỏng vấn với ảnh chữ ký ký duyệt được nhúng vào cuối thư.',
       purpose:
-        'Tối ưu hóa quy trình tuyển dụng, rút ngắn 80% thời gian lọc hồ sơ và đánh giá ứng viên khách quan theo ma trận kỹ năng, kinh nghiệm, học vấn.',
+        'Tách bước gửi email xác nhận ra khỏi bước lên lịch: HR chọn hồ sơ phỏng vấn ngay ở trigger SINGLE và hệ thống tự động soạn thư với CC/BCC cùng khối ký duyệt.',
       category: 'Tuyển dụng & HR',
-      icon: 'IconUserCheck',
-      requiredSettings: [
-        {
-          key: 'pmEmail',
-          type: 'email',
-          label:
-            i18n?._(msg`PM / HR notification email`) ??
-            'Email PM / Người nhận thông báo',
-          defaultValue: 'tuyendung@tinasoft.vn',
-        },
-      ],
+      icon: 'IconMail',
+      requiredSettings: [],
     };
   }
 
   build({
-    settings,
+    settings: _settings,
     workspaceId,
-    workspaceUrl,
   }: WorkflowTemplateBuildContext): WorkflowTemplateDefinition {
-    const ahpStepId = uuidv4();
-    const createCandidateStepId = uuidv4();
+    const signatureStepId = uuidv4();
     const sendEmailStepId = uuidv4();
+    const { interviewSignature } = getWorkflowTemplateLogicFunctionIds(workspaceId);
 
-    const pmEmail = getStringWorkflowTemplateSetting({
-      settings,
-      key: 'pmEmail',
-    });
-
-    const { ahpMatching } = getWorkflowTemplateLogicFunctionIds(workspaceId);
-
-    const emailBody = `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 650px; margin: 0 auto; background-color: #f8fafc; padding: 24px; border-radius: 12px; border: 1px solid #e2e8f0;">
+    const emailBody = `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8fafc; padding: 24px; border-radius: 12px; border: 1px solid #e2e8f0;">
   <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 24px; border-radius: 10px; text-align: center; color: #ffffff; margin-bottom: 20px;">
     <h2 style="margin: 0 0 6px 0; font-size: 22px;">TINASOFT RECRUITMENT ATS</h2>
-    <p style="margin: 0; font-size: 14px;">Báo cáo Phân tích & Đánh giá Độ phù hợp Ứng viên (AHP Engine)</p>
+    <p style="margin: 0; font-size: 14px;">Xác nhận lịch phỏng vấn</p>
   </div>
   <div style="background: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 16px;">
-    <h3>👤 {{${ahpStepId}.mappedFullName}}</h3>
-    <p>Vị trí ứng tuyển: <strong style="color: #2563eb;">{{${ahpStepId}.mappedJobTitle}}</strong> | Nguồn: {{${ahpStepId}.source}}</p>
-    <p>📧 Email: {{${ahpStepId}.mappedEmail}} | 📱 SĐT: {{${ahpStepId}.mappedPhone}}</p>
-    <p>🎯 Điểm phù hợp: <strong style="color: #059669; font-size: 16px;">{{${ahpStepId}.matchingScore}}%</strong> ({{${ahpStepId}.recommendation}})</p>
+    <h3>👤 {{trigger.properties.after.candidateName}}</h3>
+    <p>Vị trí ứng tuyển: <strong style="color: #2563eb;">{{trigger.properties.after.jobTitle}}</strong></p>
+    <p>📅 Thời gian: <strong>{{trigger.properties.after.dateTime}}</strong></p>
+    <p>👥 Người phỏng vấn: {{trigger.properties.after.interviewer}}</p>
+    <p>🔗 Link phỏng vấn: <a href="{{trigger.properties.after.meetingLink}}">{{trigger.properties.after.meetingLink}}</a></p>
   </div>
-  <div style="background: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
-    <h4>📊 CHI TIẾT BÀI ĐÁNH GIÁ THEO MÔ HÌNH AHP:</h4>
-    <pre style="background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px dashed #cbd5e1; font-family: inherit; font-size: 13.5px; white-space: pre-wrap;">{{${ahpStepId}.aiEvaluation}}</pre>
-  </div>
-  <div style="text-align: center; margin: 24px 0;">
-    <a href="${workspaceUrl}/objects/candidates" style="background-color: #2563eb; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 6px; font-weight: 600; font-size: 14px; display: inline-block;">👉 Xem Hồ sơ trên CRM</a>
+  <div style="background: #ffffff; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 16px;">
+    {{${signatureStepId}.signatureHtml}}
   </div>
 </div>`;
 
     return {
-      workflowName: 'Sàng lọc hồ sơ ứng viên & Chấm điểm AHP',
+      workflowName: 'HR: Gửi email ký xác nhận phỏng vấn',
       trigger: {
-        name: 'Nhận hồ sơ ứng tuyển từ Webhook (TopCV / Form)',
-        type: WorkflowTriggerType.WEBHOOK,
+        name: 'Khởi chạy thủ công',
+        type: WorkflowTriggerType.MANUAL,
         settings: {
-          httpMethod: 'POST',
-          expectedBody: {},
-          outputSchema: {},
-          authentication: null,
+          outputSchema: {
+            type: 'object',
+            properties: {
+              after: {
+                type: 'object',
+                properties: {
+                  id: {
+                    type: FieldMetadataType.TEXT,
+                    label: 'ID hồ sơ',
+                    value: '00000000-0000-0000-0000-000000000000',
+                    isLeaf: true,
+                  },
+                  candidateName: {
+                    type: FieldMetadataType.TEXT,
+                    label: 'Tên ứng viên',
+                    value: 'Nguyễn Văn A',
+                    isLeaf: true,
+                  },
+                  candidateEmail: {
+                    type: FieldMetadataType.TEXT,
+                    label: 'Email ứng viên',
+                    value: 'candidate@example.com',
+                    isLeaf: true,
+                  },
+                  cc: {
+                    type: FieldMetadataType.TEXT,
+                    label: 'CC',
+                    value: '',
+                    isLeaf: true,
+                  },
+                  bcc: {
+                    type: FieldMetadataType.TEXT,
+                    label: 'BCC',
+                    value: '',
+                    isLeaf: true,
+                  },
+                  jobTitle: {
+                    type: FieldMetadataType.TEXT,
+                    label: 'Vị trí ứng tuyển',
+                    value: 'Software Engineer',
+                    isLeaf: true,
+                  },
+                  interviewer: {
+                    type: FieldMetadataType.TEXT,
+                    label: 'Người phỏng vấn',
+                    value: 'HR Manager',
+                    isLeaf: true,
+                  },
+                  dateTime: {
+                    type: FieldMetadataType.DATE_TIME,
+                    label: 'Ngày giờ phỏng vấn',
+                    value: '2026-01-01T09:00:00Z',
+                    isLeaf: true,
+                  },
+                  meetingLink: {
+                    type: FieldMetadataType.TEXT,
+                    label: 'Link phỏng vấn',
+                    value: 'https://meet.google.com/abc-defg-hij',
+                    isLeaf: true,
+                  },
+                  signature: {
+                    type: FieldMetadataType.FILES,
+                    label: 'Chữ ký (File ảnh)',
+                    value: [],
+                    isLeaf: true,
+                  },
+                  connectedAccountId: {
+                    type: FieldMetadataType.TEXT,
+                    label: 'Connected Account ID',
+                    value: '',
+                    isLeaf: true,
+                  },
+                },
+              },
+            },
+          },
+          icon: 'IconMail',
+          availability: {
+            type: 'SINGLE_RECORD',
+            objectNameSingular: 'person',
+          },
         },
         position: { x: 0, y: 0 },
-        nextStepIds: [ahpStepId],
+        nextStepIds: [signatureStepId],
       },
       steps: [
         {
-          id: ahpStepId,
-          name: 'Universal Mapper & Chấm AHP Đa Nguồn',
+          id: signatureStepId,
+          name: 'Ký duyệt: nhúng ảnh chữ ký vào thư',
           type: WorkflowActionType.CODE,
           valid: true,
           position: { x: 0, y: 150 },
           settings: {
             input: {
-              logicFunctionId: ahpMatching,
+              logicFunctionId: interviewSignature,
               logicFunctionInput: {
-                trigger: '{{trigger}}',
+                signature: '{{trigger.properties.after.signature}}',
+                signerName: '{{trigger.properties.after.interviewer}}',
+                dateTime: '{{trigger.properties.after.dateTime}}',
               },
             },
             outputSchema: {
-              source: {
+              signatureHtml: {
                 type: FieldMetadataType.TEXT,
-                label: 'Intake Source',
+                label: 'Khối ký duyệt (HTML)',
                 isLeaf: true,
-                value: 'TopCV',
+                value: '<div style="margin-top: 20px;">Ký duyệt xác nhận phỏng vấn</div>',
               },
-              pmEmail: {
-                type: FieldMetadataType.TEXT,
-                label: 'PM Email',
+              hasSignature: {
+                type: FieldMetadataType.BOOLEAN,
+                label: 'Có chữ ký',
                 isLeaf: true,
-                value: 'tuyendung@tinasoft.vn',
-              },
-              mappedEmail: {
-                type: FieldMetadataType.TEXT,
-                label: 'Candidate Email',
-                isLeaf: true,
-                value: 'candidate@example.com',
-              },
-              mappedPhone: {
-                type: FieldMetadataType.TEXT,
-                label: 'Candidate Phone',
-                isLeaf: true,
-                value: '0901234567',
-              },
-              aiEvaluation: {
-                type: FieldMetadataType.TEXT,
-                label: 'AI Evaluation Summary',
-                isLeaf: true,
-                value: 'Strong match',
-              },
-              mappedCvText: {
-                type: FieldMetadataType.TEXT,
-                label: 'CV Text',
-                isLeaf: true,
-                value: 'CV content',
-              },
-              matchingScore: {
-                type: FieldMetadataType.NUMBER,
-                label: 'Matching Score (%)',
-                isLeaf: true,
-                value: 87,
-              },
-              mappedFullName: {
-                type: FieldMetadataType.TEXT,
-                label: 'Candidate Name',
-                isLeaf: true,
-                value: 'Nguyen Van A',
-              },
-              mappedJobTitle: {
-                type: FieldMetadataType.TEXT,
-                label: 'Job Title',
-                isLeaf: true,
-                value: 'Software Engineer',
-              },
-              recommendation: {
-                type: FieldMetadataType.TEXT,
-                label: 'Recommendation',
-                isLeaf: true,
-                value: 'Interview',
-              },
-            },
-            errorHandlingOptions: ERROR_HANDLING_OPTIONS,
-          },
-          nextStepIds: [createCandidateStepId],
-        },
-        {
-          id: createCandidateStepId,
-          name: 'Tự động tạo Candidate trên CRM',
-          type: WorkflowActionType.CREATE_RECORD,
-          valid: true,
-          position: { x: 0, y: 300 },
-          settings: {
-            input: {
-              objectName: 'candidate',
-              objectRecord: {
-                name: `{{${ahpStepId}.mappedFullName}}`,
-                email: `{{${ahpStepId}.mappedEmail}}`,
-                cvtext: `{{${ahpStepId}.mappedCvText}}`,
-                status: 'SCREENING',
-                pmemail: `{{${ahpStepId}.pmEmail}}`,
-                fullname: `{{${ahpStepId}.mappedFullName}}`,
-                jobtitle: `{{${ahpStepId}.mappedJobTitle}}`,
-                aievaluation: `{{${ahpStepId}.aiEvaluation}}`,
-                matchingscore: `{{${ahpStepId}.matchingScore}}`,
-              },
-            },
-            outputSchema: {
-              id: {
-                type: FieldMetadataType.TEXT,
-                label: 'Candidate ID',
-                isLeaf: true,
-                value: '',
+                value: true,
               },
             },
             errorHandlingOptions: ERROR_HANDLING_OPTIONS,
           },
           nextStepIds: [sendEmailStepId],
+          __typename: 'WorkflowAction',
         },
         {
           id: sendEmailStepId,
-          name: 'Gửi Email Kết quả cho PM',
+          name: 'Gửi email ký duyệt xác nhận phỏng vấn',
           type: WorkflowActionType.SEND_EMAIL,
           valid: true,
-          position: { x: 0, y: 450 },
+          position: { x: 0, y: 300 },
           settings: {
             input: {
-              connectedAccountId: '',
+              connectedAccountId: '{{trigger.properties.after.connectedAccountId}}',
               recipients: {
-                to: pmEmail,
-                cc: '',
-                bcc: '',
+                to: '{{trigger.properties.after.candidateEmail}}',
+                cc: '{{trigger.properties.after.cc}}',
+                bcc: '{{trigger.properties.after.bcc}}',
               },
-              subject: `[{{${ahpStepId}.source}} Matching: {{${ahpStepId}.matchingScore}}%] Ứng viên {{${ahpStepId}.mappedFullName}} - Vị trí {{${ahpStepId}.mappedJobTitle}}`,
+              subject: 'Xác nhận lịch phỏng vấn - {{trigger.properties.after.jobTitle}}',
               body: emailBody,
               files: [],
               inReplyTo: '',
@@ -234,6 +211,7 @@ export class HrCvIntakeMatchingWorkflowTemplateBuilder
             errorHandlingOptions: ERROR_HANDLING_OPTIONS,
           },
           nextStepIds: [],
+          __typename: 'WorkflowAction',
         },
       ],
     };
