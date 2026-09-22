@@ -194,7 +194,7 @@ describe('HR workflow templates', () => {
     ).toContain('candidateEmail');
   });
 
-  it('creates Interview email workflow with FORM, FIND_RECORDS, CODE, and SEND_EMAIL steps', () => {
+  it('creates Interview email workflow with a SINGLE_RECORD trigger, CODE, and SEND_EMAIL steps', () => {
     const template = HR_WORKFLOW_TEMPLATES.find(
       ({ id }) => id === 'hr-send-interview-email',
     );
@@ -204,9 +204,13 @@ describe('HR workflow templates', () => {
       buildContext(template?.requiredSettings ?? []),
     );
     expect(definition?.trigger.type).toBe('MANUAL');
+    expect(definition?.trigger.settings).toMatchObject({
+      availability: {
+        type: 'SINGLE_RECORD',
+        objectNameSingular: 'interview',
+      },
+    });
     expect(definition?.steps.map(({ type }) => type)).toEqual([
-      'FORM',
-      'FIND_RECORDS',
       'CODE',
       'SEND_EMAIL',
     ]);
@@ -222,15 +226,18 @@ describe('HR workflow templates', () => {
           input?: { logicFunctionInput?: { signature?: string } };
         }
       )?.input?.logicFunctionInput?.signature,
-    ).toContain('signature');
+    ).toContain('trigger.signature');
 
     const sendEmailStep = definition?.steps.find(
       ({ type }) => type === 'SEND_EMAIL',
     );
     expect(
-      (sendEmailStep?.settings as { input?: { files?: unknown[] } })?.input
-        ?.files,
-    ).toBeUndefined();
+      (
+        sendEmailStep?.settings as {
+          input?: { recipients?: { to?: string; cc?: string; bcc?: string } };
+        }
+      )?.input?.recipients?.to,
+    ).toContain('trigger.candidateEmail');
     expect(
       (sendEmailStep?.settings as { input?: { body?: string } })?.input?.body,
     ).toContain('signatureHtml');
