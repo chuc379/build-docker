@@ -6,12 +6,14 @@ import { type ObjectMetadataService } from 'src/engine/metadata-modules/object-m
 
 const INTERVIEW_OBJECT_NAME_SINGULAR = 'interview';
 
-const INTERVIEW_FIELDS: Array<{
+interface InterviewFieldDefinition {
   type: FieldMetadataType;
   name: string;
   label: string;
   settings?: { maxNumberOfValues?: number };
-}> = [
+}
+
+const INTERVIEW_FIELDS: InterviewFieldDefinition[] = [
   {
     type: FieldMetadataType.TEXT,
     name: 'candidateName',
@@ -79,46 +81,52 @@ export const prefillInterviewCustomObject = async ({
   objectMetadataService: ObjectMetadataService;
   fieldMetadataService: FieldMetadataService;
 }): Promise<void> => {
-  const existingObject =
-    await objectMetadataService.findOneWithinWorkspace(workspaceId, {
-      where: { nameSingular: INTERVIEW_OBJECT_NAME_SINGULAR },
-    });
+  let objectMetadata = await objectMetadataService.findOneWithinWorkspace(
+    workspaceId,
+    { where: { nameSingular: INTERVIEW_OBJECT_NAME_SINGULAR } },
+  );
 
-  const objectMetadata = isDefined(existingObject)
-    ? existingObject
-    : await objectMetadataService.createOneObject({
-        createObjectInput: {
-          nameSingular: INTERVIEW_OBJECT_NAME_SINGULAR,
-          namePlural: 'interviews',
-          labelSingular: 'Interview',
-          labelPlural: 'Interviews',
-          description:
-            'A scheduled job interview with a generated Google Meet link',
-          icon: 'IconCalendarEvent',
-        },
-        workspaceId,
-      });
-
-  const missingFields = [];
-
-  for (const field of INTERVIEW_FIELDS) {
-    const existingField = await fieldMetadataService.findOneWithinWorkspace(
-      workspaceId,
-      {
-        where: { objectMetadataId: objectMetadata.id, name: field.name },
+  if (!isDefined(objectMetadata)) {
+    objectMetadata = await objectMetadataService.createOneObject({
+      createObjectInput: {
+        nameSingular: INTERVIEW_OBJECT_NAME_SINGULAR,
+        namePlural: 'interviews',
+        labelSingular: 'Interview',
+        labelPlural: 'Interviews',
+        description:
+          'A scheduled job interview with a generated Google Meet link',
+        icon: 'IconCalendarEvent',
       },
-    );
-
-    if (!isDefined(existingField)) {
-      missingFields.push({
-        objectMetadataId: objectMetadata.id,
-        type: field.type,
-        name: field.name,
-        label: field.label,
-        settings: field.settings,
-      });
-    }
+      workspaceId,
+    });
   }
+
+  // Kiểm tra tồn tại song song để tối ưu tốc độ xử lý
+  const fieldChecks = await Promise.all(
+    INTERVIEW_FIELDS.map(async (field) => {
+      const existingField = await fieldMetadataService.findOneWithinWorkspace(
+        workspaceId,
+        {
+          where: { objectMetadataId: objectMetadata.id, name: field.name },
+        },
+      );
+
+      if (!isDefined(existingField)) {
+        return {
+          objectMetadataId: objectMetadata.id,
+          type: field.type,
+          name: field.name,
+          label: field.label,
+          settings: field.settings,
+        };
+      }
+      return null;
+    }),
+  );
+
+  const missingFields = fieldChecks.filter(
+    (field): field is NonNullable<typeof field> => isDefined(field),
+  );
 
   if (missingFields.length > 0) {
     await fieldMetadataService.createManyFields({
