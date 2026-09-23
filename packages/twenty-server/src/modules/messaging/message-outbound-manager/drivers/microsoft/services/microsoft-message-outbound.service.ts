@@ -2,14 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 
 import { type MessageOutboundDriver } from 'src/modules/messaging/message-outbound-manager/interfaces/message-outbound-driver.interface';
 
-import { MicrosoftOAuth2ClientProvider } from 'src/modules/connected-account/oauth2-client-manager/drivers/microsoft/microsoft-oauth2-client.provider';
+import { type Client as MicrosoftGraphClient } from '@microsoft/microsoft-graph-client';
+import { isNonEmptyString } from '@sniptt/guards';
 import { type ConnectedAccountEntity } from 'src/engine/metadata-modules/connected-account/entities/connected-account.entity';
+import { MicrosoftOAuth2ClientProvider } from 'src/modules/connected-account/oauth2-client-manager/drivers/microsoft/microsoft-oauth2-client.provider';
 import { toMicrosoftRecipients } from 'src/modules/messaging/message-import-manager/utils/to-microsoft-recipients.util';
 import { type SendMessageInput } from 'src/modules/messaging/message-outbound-manager/types/send-message-input.type';
 import { type SendMessageResult } from 'src/modules/messaging/message-outbound-manager/types/send-message-result.type';
 import { getConnectedAccountSendableHandleOrThrow } from 'src/modules/messaging/message-outbound-manager/utils/get-connected-account-sendable-handle-or-throw.util';
-import { type Client as MicrosoftGraphClient } from '@microsoft/microsoft-graph-client';
-import { isNonEmptyString } from '@sniptt/guards';
 import { isDefined } from 'twenty-shared/utils';
 
 @Injectable()
@@ -196,6 +196,9 @@ export class MicrosoftMessageOutboundService implements MessageOutboundDriver {
               name: attachment.filename,
               contentType: attachment.contentType,
               contentBytes: attachment.content.toString('base64'),
+              ...(attachment.cid
+                ? { isInline: true, contentId: attachment.cid }
+                : {}),
             })),
           }
         : {}),

@@ -12,6 +12,7 @@ export type SendMessageInput = {
     filename: string;
     content: Buffer;
     contentType: string;
+    cid?: string;
   }[];
   inReplyTo?: string;
   threadExternalId?: string;

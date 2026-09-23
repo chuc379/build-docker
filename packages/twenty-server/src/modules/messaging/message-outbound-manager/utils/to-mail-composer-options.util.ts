@@ -19,6 +19,7 @@ export const toMailComposerOptions = (
             filename: attachment.filename,
             content: attachment.content,
             contentType: attachment.contentType,
+            ...(attachment.cid ? { cid: attachment.cid } : {}),
           })),
         }
       : {}),

@@ -4,21 +4,21 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { isNonEmptyString } from '@sniptt/guards';
 import { MAX_EMAIL_RECIPIENTS } from 'twenty-shared/constants';
 import {
-  ConnectedAccountProvider,
-  type EmailAttachment,
+    ConnectedAccountProvider,
+    type EmailAttachment,
 } from 'twenty-shared/types';
 import { isDefined, isNonEmptyArray, isValidUuid } from 'twenty-shared/utils';
 import { In, IsNull, LessThanOrEqual, type Repository } from 'typeorm';
 import { z } from 'zod';
 
-import { FileEntity } from 'src/engine/core-modules/file/entities/file.entity';
-import { FileService } from 'src/engine/core-modules/file/services/file.service';
 import { compileOutboundEmailContent } from 'src/engine/core-modules/email/utils/compile-outbound-email-content.util';
 import { sanitizeOutboundEmailSubject } from 'src/engine/core-modules/email/utils/sanitize-outbound-email-html.util';
+import { FileEntity } from 'src/engine/core-modules/file/entities/file.entity';
+import { FileService } from 'src/engine/core-modules/file/services/file.service';
 import { EMAIL_ATTACHMENT_FILE_FOLDERS } from 'src/engine/core-modules/tool/tools/email-tool/constants/email-attachment-file-folders.const';
 import {
-  EmailToolException,
-  EmailToolExceptionCode,
+    EmailToolException,
+    EmailToolExceptionCode,
 } from 'src/engine/core-modules/tool/tools/email-tool/exceptions/email-tool.exception';
 import { type ComposeEmailParams } from 'src/engine/core-modules/tool/tools/email-tool/types/compose-email-params.type';
 import { EmailComposerResult } from 'src/engine/core-modules/tool/tools/email-tool/types/email-composer-result.type';
@@ -26,8 +26,8 @@ import { parseCommaSeparatedEmails } from 'src/engine/core-modules/tool/tools/em
 import { selectConnectedAccountIdForCaller } from 'src/engine/core-modules/tool/tools/email-tool/utils/select-connected-account-id-for-caller.util';
 import { type ToolExecutionContext } from 'src/engine/core-modules/tool/types/tool-execution-context.type';
 import { ConnectedAccountEntity } from 'src/engine/metadata-modules/connected-account/entities/connected-account.entity';
-import { WorkspaceOrmManager } from 'src/engine/twenty-orm/workspace-orm.manager';
 import { buildSystemAuthContext } from 'src/engine/twenty-orm/utils/build-system-auth-context.util';
+import { WorkspaceOrmManager } from 'src/engine/twenty-orm/workspace-orm.manager';
 import { InjectWorkspaceScopedRepository } from 'src/engine/twenty-orm/workspace-scoped-repository/inject-workspace-scoped-repository.decorator';
 import { WorkspaceScopedRepository } from 'src/engine/twenty-orm/workspace-scoped-repository/workspace-scoped-repository';
 import { type MessageChannelMessageAssociationWorkspaceEntity } from 'src/modules/messaging/common/standard-objects/message-channel-message-association.workspace-entity';
@@ -38,6 +38,13 @@ import { streamToBuffer } from 'src/utils/stream-to-buffer';
 type ParentThreadContext = {
   threadExternalId?: string;
   references?: string[];
+};
+
+type InlineImage = {
+  cid: string;
+  content: Buffer;
+  contentType: string;
+  filename: string;
 };
 
 @Injectable()
@@ -162,6 +169,33 @@ export class EmailComposerService {
       cc: parseCommaSeparatedEmails(parameters.recipients.cc),
       bcc: parseCommaSeparatedEmails(parameters.recipients.bcc),
     };
+  }
+
+  private extractInlineImages(body: string): {
+    body: string;
+    images: InlineImage[];
+  } {
+    const images: InlineImage[] = [];
+    const dataImagePattern = /src="(data:(image\/[a-z0-9.+-]+);base64,([^"]+))"/gi;
+    let imageIndex = 0;
+
+    const normalizedBody = body.replace(
+      dataImagePattern,
+      (_match, _dataUri, contentType, encodedContent) => {
+        const cid = `workflow-inline-image-${imageIndex++}@twenty.local`;
+
+        images.push({
+          cid,
+          content: Buffer.from(encodedContent, 'base64'),
+          contentType: contentType.toLowerCase(),
+          filename: `workflow-inline-image-${imageIndex}.${contentType.split('/')[1]}`,
+        });
+
+        return `src="cid:${cid}"`;
+      },
+    );
+
+    return { body: normalizedBody, images };
   }
 
   private validateEmails(recipients: {
@@ -405,9 +439,15 @@ export class EmailComposerService {
     }
 
     const attachments = await this.getAttachments(files || [], workspaceId);
+    const inlineImages =
+      typeof body === 'string' ? this.extractInlineImages(body) : null;
+
+    if (inlineImages !== null) {
+      attachments.push(...inlineImages.images);
+    }
 
     const { html: sanitizedHtmlBody, plainText: plainTextBody } =
-      await compileOutboundEmailContent(body ?? '');
+      await compileOutboundEmailContent(inlineImages?.body ?? body ?? '');
     const sanitizedSubject = await sanitizeOutboundEmailSubject(subject || '');
 
     const { threadExternalId, references } =

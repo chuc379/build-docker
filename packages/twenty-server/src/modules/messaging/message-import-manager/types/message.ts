@@ -38,6 +38,7 @@ export type MessageAttachment = {
   filename: string;
   content: Buffer;
   contentType: string;
+  cid?: string;
 };
 
 export type MessageParticipant = Omit<
