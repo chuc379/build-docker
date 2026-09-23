@@ -55,7 +55,7 @@ export class HrSendInterviewEmailWorkflowTemplateBuilder
       <p style="margin:0 0 20px;font-size:16px;line-height:1.6;">Xin chào <strong>{{trigger.payload.candidateName}}</strong>,</p>
       <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:15px;line-height:1.6;">
         <tr><td style="width:145px;padding:8px 0;color:#64748b;">Vị trí ứng tuyển</td><td style="padding:8px 0;font-weight:bold;color:#2457c5;">{{trigger.payload.jobTitle}}</td></tr>
-        <tr><td style="padding:8px 0;color:#64748b;">Thời gian</td><td style="padding:8px 0;font-weight:bold;">{{trigger.payload.dateTime}}</td></tr>
+        <tr><td style="padding:8px 0;color:#64748b;">Thời gian</td><td style="padding:8px 0;font-weight:bold;">{{${signatureStepId}.formattedDate}}</td></tr>
         <tr><td style="padding:8px 0;color:#64748b;">Người phỏng vấn</td><td style="padding:8px 0;">{{trigger.payload.interviewer}}</td></tr>
       </table>
       <div style="margin-top:22px;text-align:center;"><a href="{{trigger.payload.meetingLink}}" style="display:inline-block;background:#2457c5;color:#ffffff;text-decoration:none;border-radius:6px;padding:12px 22px;font-size:14px;font-weight:bold;">Tham gia phỏng vấn</a></div>

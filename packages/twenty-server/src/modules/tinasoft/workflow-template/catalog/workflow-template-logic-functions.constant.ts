@@ -457,6 +457,12 @@ const guessMimeFromExtension = (extension) => {
   return '';
 };
 
+const isSupportedImageMimeType = (mimeType) =>
+  typeof mimeType === 'string' &&
+  ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml'].includes(
+    mimeType.toLowerCase(),
+  );
+
 const escapeHtml = (value) =>
   String(value ?? '')
     .replace(/&/g, '&amp;')
@@ -472,11 +478,30 @@ const resolveFileUrl = (url) => {
   return url;
 };
 
+const formatInterviewDate = (value) => {
+  if (typeof value !== 'string' || value.trim() === '') return '';
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat('vi-VN', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    weekday: 'long',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(date);
+};
+
 export const main = async (params) => {
   const emptyResult = {
     signatureHtml: '',
     hasSignature: false,
     signerName: '',
+    formattedDate: '',
     fileId: '',
     fileName: '',
     url: '',
@@ -488,6 +513,7 @@ export const main = async (params) => {
     typeof params?.signerName === 'string' ? params.signerName.trim() : '';
   const interviewDate =
     typeof params?.dateTime === 'string' ? params.dateTime.trim() : '';
+  const formattedDate = formatInterviewDate(interviewDate);
 
   let files = params?.signature;
   if (typeof files === 'string' && files.trim() !== '') {
@@ -513,10 +539,16 @@ export const main = async (params) => {
         : '';
   const fileName = typeof file?.name === 'string' ? file.name : '';
   const declaredType = typeof file?.type === 'string' ? file.type : '';
-  const mimeType =
+  const declaredMimeType =
     declaredType && declaredType.includes('/')
       ? declaredType
       : guessMimeFromExtension(file?.extension) || guessMimeFromUrl(rawUrl);
+  const inlineData =
+    typeof file?.dataUri === 'string'
+      ? file.dataUri
+      : typeof file?.base64 === 'string'
+        ? 'data:' + declaredMimeType + ';base64,' + file.base64
+        : '';
 
   let dataUri = '';
   let signatureEmbedMode = 'none';
@@ -524,11 +556,23 @@ export const main = async (params) => {
   const imgStyle =
     'display:block;width:auto;max-width:260px;height:auto;max-height:96px;object-fit:contain;';
 
-  if (rawUrl && typeof fetch === 'function') {
+  if (inlineData.startsWith('data:image/')) {
+    dataUri = inlineData;
+    signatureEmbedMode = 'base64';
+  } else if (rawUrl && typeof fetch === 'function') {
     try {
       const response = await fetch(rawUrl, { redirect: 'follow' });
       if (response.ok) {
         const buffer = Buffer.from(await response.arrayBuffer());
+        const responseMimeType = String(
+          response.headers?.get?.('content-type') || '',
+        )
+          .split(';')[0]
+          .trim()
+          .toLowerCase();
+        const mimeType = isSupportedImageMimeType(responseMimeType)
+          ? responseMimeType
+          : declaredMimeType;
         if (buffer.length > 0 && buffer.length <= MAX_EMBEDDED_IMAGE_BYTES) {
           dataUri = 'data:' + mimeType + ';base64,' + buffer.toString('base64');
           signatureEmbedMode = 'base64';
@@ -547,16 +591,6 @@ export const main = async (params) => {
       '" style="' +
       imgStyle +
       '" />';
-  } else if (rawUrl) {
-    imageTag =
-      '<img src="' +
-      escapeHtml(rawUrl) +
-      '" alt="Chữ ký ' +
-      escapeHtml(signerName) +
-      '" style="' +
-      imgStyle +
-      '" />';
-    signatureEmbedMode = 'url';
   } else {
     return emptyResult;
   }
@@ -568,7 +602,7 @@ export const main = async (params) => {
     '<div style="font-size:12px;line-height:1.5;color:#64748b;margin-bottom:10px;">' +
     '<strong style="display:block;color:#1f2937;font-size:13px;">Ký duyệt xác nhận phỏng vấn</strong>' +
     signerLine +
-    (interviewDate ? ' - ' + escapeHtml(interviewDate) : '') +
+    (formattedDate ? ' - ' + escapeHtml(formattedDate) : '') +
     '</div>';
 
   return {
@@ -580,10 +614,11 @@ export const main = async (params) => {
       '</div></div>',
     hasSignature: true,
     signerName,
+    formattedDate,
     fileId,
     fileName,
     url: rawUrl,
-    mimeType,
+    mimeType: declaredMimeType,
     signatureEmbedMode,
   };
 };`;
@@ -634,6 +669,23 @@ export const getWorkflowTemplateLogicFunctionDefinitions = (
 
   return [
     {
+const formatInterviewDate = (value) => {
+  if (typeof value !== 'string' || value.trim() === '') return '';
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat('vi-VN', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    weekday: 'long',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(date);
+};
       id: filterExpiringOpportunities,
       name: 'Filter opportunities expiring on target day',
       description:
@@ -642,10 +694,11 @@ export const getWorkflowTemplateLogicFunctionDefinitions = (
     },
     {
       id: checkRepurchaseReminder,
+  const formattedDate = formatInterviewDate(interviewDate);
       name: 'Check re-purchase reminder threshold',
       description:
         'Calculates the elapsed days since the last completed opportunity and selects the company owner.',
-      sourceHandlerCode: CHECK_REPURCHASE_REMINDER_SOURCE,
+    (formattedDate ? ' - ' + escapeHtml(formattedDate) : '') +
     },
     {
       id: filterTodaysBirthdays,
