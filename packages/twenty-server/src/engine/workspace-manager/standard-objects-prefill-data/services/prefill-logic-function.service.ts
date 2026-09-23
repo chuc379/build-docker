@@ -36,6 +36,18 @@ export class PrefillLogicFunctionService {
       });
 
       if (isDefined(existingLogicFunction)) {
+        await this.logicFunctionFromSourceService.updateOneFromSource({
+          workspaceId,
+          updateLogicFunctionFromSourceInput: {
+            id: definition.id,
+            update: {
+              name: definition.name,
+              description: definition.description,
+              sourceHandlerCode: definition.sourceHandlerCode,
+              handlerName: 'main',
+            },
+          },
+        });
         continue;
       }
 

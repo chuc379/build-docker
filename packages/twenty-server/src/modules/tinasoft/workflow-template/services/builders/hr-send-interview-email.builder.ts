@@ -45,20 +45,24 @@ export class HrSendInterviewEmailWorkflowTemplateBuilder
     const sendEmailStepId = uuidv4();
     const { interviewSignature } = getWorkflowTemplateLogicFunctionIds(workspaceId);
 
-    const emailBody = `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8fafc; padding: 24px; border-radius: 12px; border: 1px solid #e2e8f0;">
-  <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 24px; border-radius: 10px; text-align: center; color: #ffffff; margin-bottom: 20px;">
-    <h2 style="margin: 0 0 6px 0; font-size: 22px;">TINASOFT RECRUITMENT ATS</h2>
-    <p style="margin: 0; font-size: 14px;">Xác nhận lịch phỏng vấn</p>
-  </div>
-  <div style="background: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 16px;">
-    <h3>👤 {{trigger.payload.candidateName}}</h3>
-    <p>Vị trí ứng tuyển: <strong style="color: #2563eb;">{{trigger.payload.jobTitle}}</strong></p>
-    <p>📅 Thời gian: <strong>{{trigger.payload.dateTime}}</strong></p>
-    <p>👥 Người phỏng vấn: {{trigger.payload.interviewer}}</p>
-    <p>🔗 Link phỏng vấn: <a href="{{trigger.payload.meetingLink}}">{{trigger.payload.meetingLink}}</a></p>
-  </div>
-  <div style="background: #ffffff; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 16px;">
-    {{${signatureStepId}.signatureHtml}}
+    const emailBody = `<div style="margin:0;background:#f4f7fb;padding:24px 12px;font-family:Arial,Helvetica,sans-serif;color:#1f2937;">
+  <div style="max-width:620px;margin:0 auto;background:#ffffff;border:1px solid #dbe3ef;border-radius:12px;overflow:hidden;">
+    <div style="background:#2457c5;padding:28px 24px;color:#ffffff;">
+      <div style="font-size:12px;letter-spacing:1px;font-weight:bold;">TINASOFT RECRUITMENT ATS</div>
+      <div style="margin-top:8px;font-size:24px;line-height:1.25;font-weight:bold;">Xác nhận lịch phỏng vấn</div>
+    </div>
+    <div style="padding:28px 24px 20px;">
+      <p style="margin:0 0 20px;font-size:16px;line-height:1.6;">Xin chào <strong>{{trigger.payload.candidateName}}</strong>,</p>
+      <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:15px;line-height:1.6;">
+        <tr><td style="width:145px;padding:8px 0;color:#64748b;">Vị trí ứng tuyển</td><td style="padding:8px 0;font-weight:bold;color:#2457c5;">{{trigger.payload.jobTitle}}</td></tr>
+        <tr><td style="padding:8px 0;color:#64748b;">Thời gian</td><td style="padding:8px 0;font-weight:bold;">{{trigger.payload.dateTime}}</td></tr>
+        <tr><td style="padding:8px 0;color:#64748b;">Người phỏng vấn</td><td style="padding:8px 0;">{{trigger.payload.interviewer}}</td></tr>
+      </table>
+      <div style="margin-top:22px;text-align:center;"><a href="{{trigger.payload.meetingLink}}" style="display:inline-block;background:#2457c5;color:#ffffff;text-decoration:none;border-radius:6px;padding:12px 22px;font-size:14px;font-weight:bold;">Tham gia phỏng vấn</a></div>
+      <p style="margin:12px 0 0;text-align:center;font-size:12px;line-height:1.5;color:#64748b;word-break:break-all;">{{trigger.payload.meetingLink}}</p>
+    </div>
+    <div style="margin:0 24px;border-top:1px solid #e5e7eb;"></div>
+    <div style="padding:20px 24px 28px;">{{${signatureStepId}.signatureHtml}}</div>
   </div>
 </div>`;
 
@@ -201,7 +205,7 @@ export class HrSendInterviewEmailWorkflowTemplateBuilder
           position: { x: 0, y: 300 },
           settings: {
             input: {
-              connectedAccountId: '{{trigger.metadata.workspaceMemberId}}',
+              connectedAccountId: '',
               recipients: {
                 to: '{{trigger.payload.candidateEmail}}',
                 cc: '{{trigger.payload.cc}}',

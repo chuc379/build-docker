@@ -445,6 +445,18 @@ const guessMimeFromUrl = (url) => {
   return 'application/octet-stream';
 };
 
+const guessMimeFromExtension = (extension) => {
+  const normalized = String(extension || '')
+    .replace(/^\./, '')
+    .toLowerCase();
+  if (normalized === 'png') return 'image/png';
+  if (normalized === 'jpg' || normalized === 'jpeg') return 'image/jpeg';
+  if (normalized === 'gif') return 'image/gif';
+  if (normalized === 'webp') return 'image/webp';
+  if (normalized === 'svg') return 'image/svg+xml';
+  return '';
+};
+
 const escapeHtml = (value) =>
   String(value ?? '')
     .replace(/&/g, '&amp;')
@@ -504,13 +516,13 @@ export const main = async (params) => {
   const mimeType =
     declaredType && declaredType.includes('/')
       ? declaredType
-      : guessMimeFromUrl(rawUrl);
+      : guessMimeFromExtension(file?.extension) || guessMimeFromUrl(rawUrl);
 
   let dataUri = '';
   let signatureEmbedMode = 'none';
 
   const imgStyle =
-    'max-width: 260px; max-height: 120px; object-fit: contain; display: block;';
+    'display:block;width:auto;max-width:260px;height:auto;max-height:96px;object-fit:contain;';
 
   if (rawUrl && typeof fetch === 'function') {
     try {
@@ -553,17 +565,17 @@ export const main = async (params) => {
     ? ' - ' + escapeHtml(signerName)
     : '';
   const header =
-    '<div style="font-size: 12px; color: #64748b; margin-bottom: 4px;">' +
-    'Ký duyệt xác nhận phỏng vấn' +
+    '<div style="font-size:12px;line-height:1.5;color:#64748b;margin-bottom:10px;">' +
+    '<strong style="display:block;color:#1f2937;font-size:13px;">Ký duyệt xác nhận phỏng vấn</strong>' +
     signerLine +
     (interviewDate ? ' - ' + escapeHtml(interviewDate) : '') +
     '</div>';
 
   return {
     signatureHtml:
-      '<div style="margin-top: 20px; padding-top: 12px; border-top: 1px solid #e2e8f0;">' +
+      '<div style="padding:16px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;">' +
       header +
-      '<div style="margin-top: 6px;">' +
+      '<div style="min-height:96px;display:flex;align-items:center;">' +
       imageTag +
       '</div></div>',
     hasSignature: true,
