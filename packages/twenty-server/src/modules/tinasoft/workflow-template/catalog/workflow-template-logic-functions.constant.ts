@@ -669,23 +669,6 @@ export const getWorkflowTemplateLogicFunctionDefinitions = (
 
   return [
     {
-const formatInterviewDate = (value) => {
-  if (typeof value !== 'string' || value.trim() === '') return '';
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-
-  return new Intl.DateTimeFormat('vi-VN', {
-    timeZone: 'Asia/Ho_Chi_Minh',
-    weekday: 'long',
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).format(date);
-};
       id: filterExpiringOpportunities,
       name: 'Filter opportunities expiring on target day',
       description:
@@ -694,11 +677,10 @@ const formatInterviewDate = (value) => {
     },
     {
       id: checkRepurchaseReminder,
-  const formattedDate = formatInterviewDate(interviewDate);
       name: 'Check re-purchase reminder threshold',
       description:
         'Calculates the elapsed days since the last completed opportunity and selects the company owner.',
-    (formattedDate ? ' - ' + escapeHtml(formattedDate) : '') +
+      sourceHandlerCode: CHECK_REPURCHASE_REMINDER_SOURCE,
     },
     {
       id: filterTodaysBirthdays,
