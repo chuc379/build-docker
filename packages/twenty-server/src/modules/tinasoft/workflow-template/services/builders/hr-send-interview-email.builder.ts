@@ -51,11 +51,11 @@ export class HrSendInterviewEmailWorkflowTemplateBuilder
     <p style="margin: 0; font-size: 14px;">Xác nhận lịch phỏng vấn</p>
   </div>
   <div style="background: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 16px;">
-    <h3>👤 {{trigger.candidateName}}</h3>
-    <p>Vị trí ứng tuyển: <strong style="color: #2563eb;">{{trigger.jobTitle}}</strong></p>
-    <p>📅 Thời gian: <strong>{{trigger.dateTime}}</strong></p>
-    <p>👥 Người phỏng vấn: {{trigger.interviewer}}</p>
-    <p>🔗 Link phỏng vấn: <a href="{{trigger.meetingLink}}">{{trigger.meetingLink}}</a></p>
+    <h3>👤 {{trigger.payload.candidateName}}</h3>
+    <p>Vị trí ứng tuyển: <strong style="color: #2563eb;">{{trigger.payload.jobTitle}}</strong></p>
+    <p>📅 Thời gian: <strong>{{trigger.payload.dateTime}}</strong></p>
+    <p>👥 Người phỏng vấn: {{trigger.payload.interviewer}}</p>
+    <p>🔗 Link phỏng vấn: <a href="{{trigger.payload.meetingLink}}">{{trigger.payload.meetingLink}}</a></p>
   </div>
   <div style="background: #ffffff; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 16px;">
     {{${signatureStepId}.signatureHtml}}
@@ -69,67 +69,84 @@ export class HrSendInterviewEmailWorkflowTemplateBuilder
         type: WorkflowTriggerType.MANUAL,
         settings: {
           outputSchema: {
-            type: 'object',
-            properties: {
-              id: {
-                type: FieldMetadataType.TEXT,
-                label: 'ID hồ sơ',
-                value: '00000000-0000-0000-0000-000000000000',
-                isLeaf: true,
+            payload: {
+              isLeaf: false,
+              type: 'object',
+              label: 'Record',
+              value: {
+                id: {
+                  isLeaf: true,
+                  type: FieldMetadataType.UUID,
+                  label: 'Id',
+                  value: '00000000-0000-0000-0000-000000000000',
+                },
+                candidateName: {
+                  isLeaf: true,
+                  type: FieldMetadataType.TEXT,
+                  label: 'Tên ứng viên',
+                  value: 'Nguyễn Văn A',
+                },
+                candidateEmail: {
+                  isLeaf: true,
+                  type: FieldMetadataType.TEXT,
+                  label: 'Email ứng viên',
+                  value: 'candidate@example.com',
+                },
+                cc: {
+                  isLeaf: true,
+                  type: FieldMetadataType.TEXT,
+                  label: 'CC',
+                  value: '',
+                },
+                bcc: {
+                  isLeaf: true,
+                  type: FieldMetadataType.TEXT,
+                  label: 'BCC',
+                  value: '',
+                },
+                jobTitle: {
+                  isLeaf: true,
+                  type: FieldMetadataType.TEXT,
+                  label: 'Vị trí ứng tuyển',
+                  value: 'Software Engineer',
+                },
+                interviewer: {
+                  isLeaf: true,
+                  type: FieldMetadataType.TEXT,
+                  label: 'Người phỏng vấn',
+                  value: 'HR Manager',
+                },
+                dateTime: {
+                  isLeaf: true,
+                  type: FieldMetadataType.DATE_TIME,
+                  label: 'Ngày giờ phỏng vấn',
+                  value: '2026-01-01T09:00:00Z',
+                },
+                meetingLink: {
+                  isLeaf: true,
+                  type: FieldMetadataType.TEXT,
+                  label: 'Link phỏng vấn',
+                  value: 'https://meet.google.com/abc-defg-hij',
+                },
+                signature: {
+                  isLeaf: true,
+                  type: FieldMetadataType.FILES,
+                  label: 'Chữ ký (File ảnh)',
+                  value: [],
+                },
               },
-              candidateName: {
-                type: FieldMetadataType.TEXT,
-                label: 'Tên ứng viên',
-                value: 'Nguyễn Văn A',
-                isLeaf: true,
-              },
-              candidateEmail: {
-                type: FieldMetadataType.TEXT,
-                label: 'Email ứng viên',
-                value: 'candidate@example.com',
-                isLeaf: true,
-              },
-              cc: {
-                type: FieldMetadataType.TEXT,
-                label: 'CC',
-                value: '',
-                isLeaf: true,
-              },
-              bcc: {
-                type: FieldMetadataType.TEXT,
-                label: 'BCC',
-                value: '',
-                isLeaf: true,
-              },
-              jobTitle: {
-                type: FieldMetadataType.TEXT,
-                label: 'Vị trí ứng tuyển',
-                value: 'Software Engineer',
-                isLeaf: true,
-              },
-              interviewer: {
-                type: FieldMetadataType.TEXT,
-                label: 'Người phỏng vấn',
-                value: 'HR Manager',
-                isLeaf: true,
-              },
-              dateTime: {
-                type: FieldMetadataType.DATE_TIME,
-                label: 'Ngày giờ phỏng vấn',
-                value: '2026-01-01T09:00:00Z',
-                isLeaf: true,
-              },
-              meetingLink: {
-                type: FieldMetadataType.TEXT,
-                label: 'Link phỏng vấn',
-                value: 'https://meet.google.com/abc-defg-hij',
-                isLeaf: true,
-              },
-              signature: {
-                type: FieldMetadataType.FILES,
-                label: 'Chữ ký (File ảnh)',
-                value: [],
-                isLeaf: true,
+            },
+            metadata: {
+              isLeaf: false,
+              type: 'object',
+              label: 'Metadata',
+              value: {
+                workspaceMemberId: {
+                  isLeaf: true,
+                  type: FieldMetadataType.TEXT,
+                  label: 'Workspace Member',
+                  value: '00000000-0000-0000-0000-000000000000',
+                },
               },
             },
           },
@@ -153,9 +170,9 @@ export class HrSendInterviewEmailWorkflowTemplateBuilder
             input: {
               logicFunctionId: interviewSignature,
               logicFunctionInput: {
-                signature: '{{trigger.signature}}',
-                signerName: '{{trigger.interviewer}}',
-                dateTime: '{{trigger.dateTime}}',
+                signature: '{{trigger.payload.signature}}',
+                signerName: '{{trigger.payload.interviewer}}',
+                dateTime: '{{trigger.payload.dateTime}}',
               },
             },
             outputSchema: {
@@ -186,11 +203,11 @@ export class HrSendInterviewEmailWorkflowTemplateBuilder
             input: {
               connectedAccountId: '',
               recipients: {
-                to: '{{trigger.candidateEmail}}',
-                cc: '{{trigger.cc}}',
-                bcc: '{{trigger.bcc}}',
+                to: '{{trigger.payload.candidateEmail}}',
+                cc: '{{trigger.payload.cc}}',
+                bcc: '{{trigger.payload.bcc}}',
               },
-              subject: 'Xác nhận lịch phỏng vấn - {{trigger.jobTitle}}',
+              subject: 'Xác nhận lịch phỏng vấn - {{trigger.payload.jobTitle}}',
               body: emailBody,
               files: [],
               inReplyTo: '',

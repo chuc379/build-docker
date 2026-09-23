@@ -226,7 +226,7 @@ describe('HR workflow templates', () => {
           input?: { logicFunctionInput?: { signature?: string } };
         }
       )?.input?.logicFunctionInput?.signature,
-    ).toContain('trigger.signature');
+    ).toContain('trigger.payload.signature');
 
     const sendEmailStep = definition?.steps.find(
       ({ type }) => type === 'SEND_EMAIL',
@@ -237,7 +237,7 @@ describe('HR workflow templates', () => {
           input?: { recipients?: { to?: string; cc?: string; bcc?: string } };
         }
       )?.input?.recipients?.to,
-    ).toContain('trigger.candidateEmail');
+    ).toContain('trigger.payload.candidateEmail');
     expect(
       (sendEmailStep?.settings as { input?: { body?: string } })?.input?.body,
     ).toContain('signatureHtml');
