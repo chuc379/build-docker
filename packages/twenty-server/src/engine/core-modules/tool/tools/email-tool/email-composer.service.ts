@@ -188,7 +188,7 @@ export class EmailComposerService {
           cid,
           content: Buffer.from(encodedContent, 'base64'),
           contentType: contentType.toLowerCase(),
-          filename: `workflow-inline-image-${imageIndex}.${contentType.split('/')[1]}`,
+          filename: `signature.${contentType.split('/')[1]}`,
         });
 
         return `src="cid:${cid}"`;
@@ -443,7 +443,13 @@ export class EmailComposerService {
       typeof body === 'string' ? this.extractInlineImages(body) : null;
 
     if (inlineImages !== null) {
-      attachments.push(...inlineImages.images);
+      for (const inlineImage of inlineImages.images) {
+        attachments.push(inlineImage);
+        attachments.push({
+          ...inlineImage,
+          cid: undefined,
+        });
+      }
     }
 
     const { html: sanitizedHtmlBody, plainText: plainTextBody } =
