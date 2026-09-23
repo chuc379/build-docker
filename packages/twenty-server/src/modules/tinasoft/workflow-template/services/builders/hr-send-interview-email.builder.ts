@@ -70,84 +70,84 @@ export class HrSendInterviewEmailWorkflowTemplateBuilder
         settings: {
           outputSchema: {
             payload: {
-              isLeaf: false,
               type: 'object',
               label: 'Record',
               value: {
                 id: {
-                  isLeaf: true,
-                  type: FieldMetadataType.UUID,
-                  label: 'Id',
+                  type: FieldMetadataType.TEXT,
+                  label: 'ID hồ sơ',
                   value: '00000000-0000-0000-0000-000000000000',
+                  isLeaf: true,
                 },
                 candidateName: {
-                  isLeaf: true,
                   type: FieldMetadataType.TEXT,
                   label: 'Tên ứng viên',
                   value: 'Nguyễn Văn A',
+                  isLeaf: true,
                 },
                 candidateEmail: {
-                  isLeaf: true,
                   type: FieldMetadataType.TEXT,
                   label: 'Email ứng viên',
                   value: 'candidate@example.com',
+                  isLeaf: true,
                 },
                 cc: {
-                  isLeaf: true,
                   type: FieldMetadataType.TEXT,
                   label: 'CC',
                   value: '',
+                  isLeaf: true,
                 },
                 bcc: {
-                  isLeaf: true,
                   type: FieldMetadataType.TEXT,
                   label: 'BCC',
                   value: '',
+                  isLeaf: true,
                 },
                 jobTitle: {
-                  isLeaf: true,
                   type: FieldMetadataType.TEXT,
                   label: 'Vị trí ứng tuyển',
                   value: 'Software Engineer',
+                  isLeaf: true,
                 },
                 interviewer: {
-                  isLeaf: true,
                   type: FieldMetadataType.TEXT,
                   label: 'Người phỏng vấn',
                   value: 'HR Manager',
+                  isLeaf: true,
                 },
                 dateTime: {
-                  isLeaf: true,
                   type: FieldMetadataType.DATE_TIME,
                   label: 'Ngày giờ phỏng vấn',
                   value: '2026-01-01T09:00:00Z',
+                  isLeaf: true,
                 },
                 meetingLink: {
-                  isLeaf: true,
                   type: FieldMetadataType.TEXT,
                   label: 'Link phỏng vấn',
                   value: 'https://meet.google.com/abc-defg-hij',
+                  isLeaf: true,
                 },
                 signature: {
-                  isLeaf: true,
                   type: FieldMetadataType.FILES,
                   label: 'Chữ ký (File ảnh)',
                   value: [],
+                  isLeaf: true,
                 },
               },
+              isLeaf: false,
             },
             metadata: {
-              isLeaf: false,
               type: 'object',
               label: 'Metadata',
               value: {
                 workspaceMemberId: {
-                  isLeaf: true,
                   type: FieldMetadataType.TEXT,
                   label: 'Workspace Member',
                   value: '00000000-0000-0000-0000-000000000000',
+                  isLeaf: true,
                 },
               },
+              isLeaf: false,
             },
           },
           icon: 'IconMail',
@@ -201,7 +201,7 @@ export class HrSendInterviewEmailWorkflowTemplateBuilder
           position: { x: 0, y: 300 },
           settings: {
             input: {
-              connectedAccountId: '',
+              connectedAccountId: '{{trigger.metadata.workspaceMemberId}}',
               recipients: {
                 to: '{{trigger.payload.candidateEmail}}',
                 cc: '{{trigger.payload.cc}}',
