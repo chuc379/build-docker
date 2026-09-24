@@ -182,7 +182,7 @@ const AHP_MATCHING_SOURCE = `export const main = async (params) => {
     const decoder = new TextDecoder('latin1');
     const source = decoder.decode(bytes);
     const textStreams = [];
-    const streamPattern = /<<(.*?)>>\\s*stream[\\r\\n]+([\\s\\S]*?)endstream/g;
+    const streamPattern = /<<([\\s\\S]*?)>>\\s*stream[\\r\\n]+([\\s\\S]*?)endstream/g;
     let streamMatch;
 
     while ((streamMatch = streamPattern.exec(source)) !== null) {
@@ -257,8 +257,12 @@ const AHP_MATCHING_SOURCE = `export const main = async (params) => {
       const response = await fetch(cvDownloadUrl, { redirect: 'follow' });
       if (response.ok) {
         const contentType = String(response.headers?.get?.('content-type') || '').toLowerCase();
-        if (contentType.includes('pdf')) {
-          cv = await extractPdfText(await response.arrayBuffer());
+        const responseBuffer = await response.arrayBuffer();
+        const responseBytes = new Uint8Array(responseBuffer);
+        const fileSignature = new TextDecoder('latin1').decode(responseBytes.slice(0, 5));
+
+        if (contentType.includes('pdf') || fileSignature === '%PDF-') {
+          cv = await extractPdfText(responseBuffer);
           if (!cv) {
             fetchNote = 'PDF không có lớp text (có thể là bản scan). Cần OCR trước khi AI có thể đọc CV.';
           }
@@ -280,6 +284,16 @@ const AHP_MATCHING_SOURCE = `export const main = async (params) => {
 
   if (!cv && cvDownloadUrl) {
     cv = 'CV_DOWNLOAD_URL: ' + cvDownloadUrl;
+  }
+
+  const looksLikePdfBinary =
+    cv.includes('%PDF-') ||
+    cv.includes('JFIF') ||
+    /[\u0000-\u0008\u000B\u000C\u000E-\u001F]/.test(cv);
+
+  if (looksLikePdfBinary) {
+    cv = '';
+    fetchNote = 'CV là PDF scan/hình ảnh, không có text layer. Cần OCR trước khi AI có thể chấm điểm.';
   }
 
   cv = String(cv)
@@ -304,11 +318,14 @@ const AHP_MATCHING_SOURCE = `export const main = async (params) => {
 };`;
 
 const CALCULATE_AHP_SOURCE = `export const main = async (params) => {
-  const clampScore = (value) => Math.max(0, Math.min(100, Number(value) || 0));
-  const skillsScore = clampScore(params?.skillsScore);
-  const expScore = clampScore(params?.expScore);
-  const eduScore = clampScore(params?.eduScore);
-  const generalScore = clampScore(params?.generalScore);
+  const parseScore = (value) => {
+    const match = String(value ?? '').match(/\\d+(?:\\.\\d+)?/);
+    return match ? Math.max(0, Math.min(100, Number(match[0]))) : 0;
+  };
+  const skillsScore = parseScore(params?.skillsScore);
+  const expScore = parseScore(params?.expScore);
+  const eduScore = parseScore(params?.eduScore);
+  const generalScore = parseScore(params?.generalScore);
   const matchingScore = Math.round(
     skillsScore * 0.4 + expScore * 0.3 + eduScore * 0.15 + generalScore * 0.15,
   );
@@ -328,7 +345,7 @@ const CALCULATE_AHP_SOURCE = `export const main = async (params) => {
     eduScore,
     generalScore,
     recommendation,
-    aiEvaluation: 'AHP = Skills x 40% + Experience x 30% + Education x 15% + Language & soft skills x 15%.',
+    aiEvaluation: 'AHP = Skills ' + skillsScore + ' x 40% + Experience ' + expScore + ' x 30% + Education ' + eduScore + ' x 15% + Language & soft skills ' + generalScore + ' x 15%.',
   };
 };`;
 

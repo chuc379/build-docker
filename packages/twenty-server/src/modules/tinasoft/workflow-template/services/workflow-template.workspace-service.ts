@@ -386,7 +386,24 @@ Make the description engaging, clear, and professional.`,
         'modelConfiguration',
         'evaluationInputs',
       ])
-      .orIgnore()
+      .orUpdate(
+        [
+          'name',
+          'label',
+          'icon',
+          'description',
+          'prompt',
+          'modelId',
+          'responseFormat',
+          'isCustom',
+          'workspaceId',
+          'applicationId',
+          'universalIdentifier',
+          'modelConfiguration',
+          'evaluationInputs',
+        ],
+        ['id'],
+      )
       .values([
         {
           id: agentId,
