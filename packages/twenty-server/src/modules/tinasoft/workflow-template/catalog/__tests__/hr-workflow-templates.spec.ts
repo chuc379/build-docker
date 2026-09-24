@@ -91,7 +91,7 @@ describe('HR workflow templates', () => {
     },
   );
 
-  it('creates CV intake matching workflow with CODE, CREATE_RECORD, and SEND_EMAIL steps', () => {
+  it('creates CV intake matching workflow with CODE, AI_AGENT, CREATE_RECORD, and SEND_EMAIL steps', () => {
     const template = HR_WORKFLOW_TEMPLATES.find(
       ({ id }) => id === 'hr-cv-intake-matching',
     );
@@ -103,9 +103,45 @@ describe('HR workflow templates', () => {
     expect(definition?.trigger.type).toBe('WEBHOOK');
     expect(definition?.steps.map(({ type }) => type)).toEqual([
       'CODE',
+      'AI_AGENT',
       'CREATE_RECORD',
       'SEND_EMAIL',
     ]);
+
+    const codeStep = definition?.steps.find(
+      ({ type }) => type === 'CODE',
+    ) as { settings?: { input?: { logicFunctionInput?: { trigger?: string } } } } | undefined;
+    expect(codeStep?.settings?.input?.logicFunctionInput?.trigger).toBe(
+      '{{trigger}}',
+    );
+
+    const aiAgentStep = definition?.steps.find(
+      ({ type }) => type === 'AI_AGENT',
+    ) as
+      | { settings?: { input?: { agentId?: string; prompt?: string } } }
+      | undefined;
+    expect(aiAgentStep?.settings?.input?.agentId).toBeDefined();
+    expect(aiAgentStep?.settings?.input?.prompt).toContain('mappedCvText');
+
+    const createRecordStep = definition?.steps.find(
+      ({ type }) => type === 'CREATE_RECORD',
+    ) as
+      | { settings?: { input?: { objectRecord?: Record<string, string> } } }
+      | undefined;
+    expect(createRecordStep?.settings?.input?.objectRecord).toEqual(
+      expect.objectContaining({
+        cvdownloadurl: expect.stringContaining('cvDownloadUrl'),
+        jobid: expect.stringContaining('jobId'),
+        applyat: expect.stringContaining('applyAt'),
+      }),
+    );
+    expect(createRecordStep?.settings?.input?.objectRecord).toEqual(
+      expect.objectContaining({
+        aievaluation: expect.stringContaining('.aiEvaluation'),
+        matchingscore: expect.stringContaining('.matchingScore'),
+        email: expect.stringContaining('mappedEmail'),
+      }),
+    );
   });
 
   it('creates Job Description generation workflow with FORM, AI_AGENT, and CREATE_RECORD steps', () => {

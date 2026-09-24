@@ -23,7 +23,9 @@ import { WorkflowTemplateFactory } from 'src/modules/tinasoft/workflow-template/
 import { type CreateWorkflowFromTemplateResult } from 'src/modules/tinasoft/workflow-template/types/workflow-template.type';
 import { validateWorkflowTemplateSettings } from 'src/modules/tinasoft/workflow-template/utils/workflow-template-settings.util';
 import {
+  CV_INTAKE_EVALUATION_AGENT_UNIVERSAL_IDENTIFIER,
   JOB_DESCRIPTION_AGENT_UNIVERSAL_IDENTIFIER,
+  getCvIntakeEvaluationAgentId,
   getJobDescriptionAgentId,
 } from 'src/modules/tinasoft/workflow-template/utils/workflow-template-agent.util';
 import {
@@ -129,6 +131,10 @@ export class WorkflowTemplateWorkspaceService {
 
     if (templateId === 'hr-generate-job-description') {
       await this.ensureJobDescriptionAgentSeeded(workspaceId);
+    }
+
+    if (templateId === 'hr-cv-intake-matching') {
+      await this.ensureCvIntakeEvaluationAgentSeeded(workspaceId);
     }
 
     const workflowTemplateDefinition = builder.build({
@@ -341,6 +347,126 @@ Make the description engaging, clear, and professional.`,
           workspaceId,
           applicationId,
           universalIdentifier: JOB_DESCRIPTION_AGENT_UNIVERSAL_IDENTIFIER,
+          modelConfiguration: {},
+          evaluationInputs: [],
+        },
+      ])
+      .execute();
+  }
+
+  private async ensureCvIntakeEvaluationAgentSeeded(workspaceId: string) {
+    const [workspace] = await this.workspaceRepository.manager.query(
+      `SELECT "workspaceCustomApplicationId" FROM core."workspace" WHERE id = $1`,
+      [workspaceId],
+    );
+    const applicationId = workspace?.workspaceCustomApplicationId;
+
+    if (!applicationId) {
+      return;
+    }
+
+    const agentId = getCvIntakeEvaluationAgentId(workspaceId);
+
+    await this.workspaceRepository.manager
+      .createQueryBuilder()
+      .insert()
+      .into('core.agent', [
+        'id',
+        'name',
+        'label',
+        'icon',
+        'description',
+        'prompt',
+        'modelId',
+        'responseFormat',
+        'isCustom',
+        'workspaceId',
+        'applicationId',
+        'universalIdentifier',
+        'modelConfiguration',
+        'evaluationInputs',
+      ])
+      .orIgnore()
+      .values([
+        {
+          id: agentId,
+          name: 'cvIntakeEvaluationAgent',
+          label: 'CV Intake AHP Evaluator',
+          icon: 'IconUserCheck',
+          description:
+            'Analyzes a candidate CV against the target job and scores the fit using the AHP multi-criteria model',
+          prompt: `You are an expert recruiter specializing in AHP (Analytic Hierarchy Process) candidate screening.
+
+A candidate applied to a job. You must evaluate their fit and return a structured JSON result.
+
+Evaluate based on these criteria and weights:
+1. Skills fit (40%)
+2. Experience (30%)
+3. Education (15%)
+4. Language & soft skills (15%)
+
+Output only a JSON object (no markdown) with exactly these properties:
+- matchingScore: integer 0-100
+- skillsScore: integer 0-100
+- expScore: integer 0-100
+- eduScore: integer 0-100
+- generalScore: integer 0-100
+- recommendation: one of 'RẤT PHÙ HỢP (Ưu tiên phỏng vấn)', 'PHÙ HỢP (Khuyến nghị phỏng vấn)', 'CÂN NHẮC (Cần đánh giá thêm kỹ năng thiếu)', 'KHÔNG PHÙ HỢP (Hồ sơ chưa đạt tiêu chí cốt lõi)'
+- aiEvaluation: a multi-line Vietnamese evaluation that details each of the 4 criteria, the candidate's strengths, gaps and a clear verdict
+
+matchingScore must be the weighted average of the 4 criterion scores (40/30/15/15).`,
+          modelId: 'default-smart-model',
+          responseFormat: {
+            type: 'json',
+            schema: {
+              type: 'object',
+              properties: {
+                matchingScore: {
+                  type: 'number',
+                  description: 'Overall weighted AHP matching score 0-100',
+                },
+                skillsScore: {
+                  type: 'number',
+                  description: 'Skills fit score 0-100',
+                },
+                expScore: {
+                  type: 'number',
+                  description: 'Experience score 0-100',
+                },
+                eduScore: {
+                  type: 'number',
+                  description: 'Education score 0-100',
+                },
+                generalScore: {
+                  type: 'number',
+                  description: 'Language and soft skills score 0-100',
+                },
+                recommendation: {
+                  type: 'string',
+                  description: 'One of the four Vietnamese recommendation tags',
+                },
+                aiEvaluation: {
+                  type: 'string',
+                  description:
+                    'Multi-line Vietnamese evaluation detailing the 4 AHP criteria and the verdict',
+                },
+              },
+              required: [
+                'matchingScore',
+                'skillsScore',
+                'expScore',
+                'eduScore',
+                'generalScore',
+                'recommendation',
+                'aiEvaluation',
+              ],
+              additionalProperties: false,
+            },
+          },
+          isCustom: false,
+          workspaceId,
+          applicationId,
+          universalIdentifier: CV_INTAKE_EVALUATION_AGENT_UNIVERSAL_IDENTIFIER,
           modelConfiguration: {},
           evaluationInputs: [],
         },
