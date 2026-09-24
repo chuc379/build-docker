@@ -165,6 +165,72 @@ const ADD_ONE_DAY_SOURCE = `export const main = async (params) => {
 };`;
 
 const AHP_MATCHING_SOURCE = `export const main = async (params) => {
+  const decodePdfLiteral = (value) => value
+    .replace(/\\\\([nrtbf()\\\\])/g, (_, escaped) => ({
+      n: '\\n',
+      r: '\\r',
+      t: '\\t',
+      b: '\\b',
+      f: '\\f',
+      '(': '(',
+      ')': ')',
+      '\\\\': '\\\\',
+    }[escaped] || escaped));
+
+  const extractPdfText = async (buffer) => {
+    const bytes = new Uint8Array(buffer);
+    const decoder = new TextDecoder('latin1');
+    const source = decoder.decode(bytes);
+    const textStreams = [];
+    const streamPattern = /<<(.*?)>>\\s*stream[\\r\\n]+([\\s\\S]*?)endstream/g;
+    let streamMatch;
+
+    while ((streamMatch = streamPattern.exec(source)) !== null) {
+      const dictionary = streamMatch[1];
+      const streamStart = streamMatch.index + streamMatch[0].indexOf(streamMatch[2]);
+      let streamBytes = bytes.slice(streamStart, streamStart + streamMatch[2].length);
+
+      if (dictionary.includes('/FlateDecode') && typeof DecompressionStream === 'function') {
+        try {
+          const decompressionStream = new DecompressionStream('deflate');
+          const decompressed = new Blob([streamBytes]).stream().pipeThrough(decompressionStream);
+          streamBytes = new Uint8Array(await new Response(decompressed).arrayBuffer());
+        } catch (_) {
+          continue;
+        }
+      }
+
+      const streamText = decoder.decode(streamBytes);
+      const literalTexts = [];
+      const literalPattern = /\\(((?:\\\\.|[^\\\\)])*)\\)\\s*Tj/g;
+      let literalMatch;
+
+      while ((literalMatch = literalPattern.exec(streamText)) !== null) {
+        literalTexts.push(decodePdfLiteral(literalMatch[1]));
+      }
+
+      const arrayPattern = /\\[([\\s\\S]*?)\\]\\s*TJ/g;
+      let arrayMatch;
+
+      while ((arrayMatch = arrayPattern.exec(streamText)) !== null) {
+        const arrayText = arrayMatch[1]
+          .replace(/\\(((?:\\\\.|[^\\\\)])*)\\)/g, (_, value) => decodePdfLiteral(value))
+          .replace(/<([0-9A-Fa-f]+)>/g, (_, value) => {
+            try {
+              return String.fromCharCode(...value.match(/../g).map((byte) => parseInt(byte, 16)));
+            } catch (_) {
+              return '';
+            }
+          });
+        literalTexts.push(arrayText);
+      }
+
+      textStreams.push(literalTexts.join(' '));
+    }
+
+    return textStreams.join('\\n').replace(/\\s+/g, ' ').trim();
+  };
+
   const p = params?.trigger?.body || params?.trigger || params?.body || params || {};
   const data = (p.data && typeof p.data === 'object') ? p.data : {};
 
@@ -186,11 +252,18 @@ const AHP_MATCHING_SOURCE = `export const main = async (params) => {
       const response = await fetch(cvDownloadUrl, { redirect: 'follow' });
       if (response.ok) {
         const contentType = String(response.headers?.get?.('content-type') || '').toLowerCase();
-        const raw = await response.text();
-        if (contentType.includes('text/') || contentType.includes('html') || contentType.includes('json')) {
-          cv = raw.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\\s+/g, ' ').trim();
+        if (contentType.includes('pdf')) {
+          cv = await extractPdfText(await response.arrayBuffer());
+          if (!cv) {
+            fetchNote = 'PDF không có lớp text (có thể là bản scan). Cần OCR trước khi AI có thể đọc CV.';
+          }
         } else {
-          fetchNote = 'File CV là định dạng nhị phân (PDF/DOC...), hệ thống không bóc tách được văn bản. Link tải CV đã được lưu.';
+          const raw = await response.text();
+          if (contentType.includes('text/') || contentType.includes('html') || contentType.includes('json')) {
+            cv = raw.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\\s+/g, ' ').trim();
+          } else {
+            fetchNote = 'File CV không phải text/PDF. Link tải CV đã được lưu nhưng AI không thể đọc nội dung trực tiếp.';
+          }
         }
       } else {
         fetchNote = 'Không tải được CV từ download_url (HTTP ' + response.status + ').';

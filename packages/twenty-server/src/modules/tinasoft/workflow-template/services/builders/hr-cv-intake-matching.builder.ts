@@ -13,9 +13,9 @@ import {
   type WorkflowTemplateBuildContext,
   type WorkflowTemplateDefinition,
 } from 'src/modules/tinasoft/workflow-template/types/workflow-template.type';
+import { getCvIntakeEvaluationAgentId } from 'src/modules/tinasoft/workflow-template/utils/workflow-template-agent.util';
 import { ERROR_HANDLING_OPTIONS } from 'src/modules/tinasoft/workflow-template/utils/workflow-template-builder-helpers.util';
 import { getStringWorkflowTemplateSetting } from 'src/modules/tinasoft/workflow-template/utils/workflow-template-settings.util';
-import { getCvIntakeEvaluationAgentId } from 'src/modules/tinasoft/workflow-template/utils/workflow-template-agent.util';
 import { WorkflowTriggerType } from 'src/modules/workflow/workflow-trigger/types/workflow-trigger.type';
 
 @Injectable()
@@ -167,7 +167,17 @@ export class HrCvIntakeMatchingWorkflowTemplateBuilder
             input: {
               logicFunctionId: ahpMatching,
               logicFunctionInput: {
-                trigger: '{{trigger}}',
+                trigger: {
+                  body: {
+                    job_id: '{{trigger.job_id}}',
+                    job_title: '{{trigger.job_title}}',
+                    apply_at: '{{trigger.apply_at}}',
+                    candidate_name: '{{trigger.candidate_name}}',
+                    candidate_email: '{{trigger.candidate_email}}',
+                    candidate_phone: '{{trigger.candidate_phone}}',
+                    download_url: '{{trigger.download_url}}',
+                  },
+                },
               },
             },
             outputSchema: {

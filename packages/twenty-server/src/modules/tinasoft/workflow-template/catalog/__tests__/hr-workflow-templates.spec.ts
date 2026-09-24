@@ -3,8 +3,8 @@ import { HrGenerateJobDescriptionWorkflowTemplateBuilder } from 'src/modules/tin
 import { HrScheduleInterviewWorkflowTemplateBuilder } from 'src/modules/tinasoft/workflow-template/services/builders/hr-schedule-interview.builder';
 import { HrSendInterviewEmailWorkflowTemplateBuilder } from 'src/modules/tinasoft/workflow-template/services/builders/hr-send-interview-email.builder';
 import {
-  workflowActionSchema,
-  workflowTriggerSchema,
+    workflowActionSchema,
+    workflowTriggerSchema,
 } from 'twenty-shared/workflow';
 
 const hrBuilders = [
@@ -111,9 +111,17 @@ describe('HR workflow templates', () => {
     const codeStep = definition?.steps.find(
       ({ type }) => type === 'CODE',
     ) as { settings?: { input?: { logicFunctionInput?: { trigger?: string } } } } | undefined;
-    expect(codeStep?.settings?.input?.logicFunctionInput?.trigger).toBe(
-      '{{trigger}}',
-    );
+    expect(codeStep?.settings?.input?.logicFunctionInput?.trigger).toEqual({
+      body: {
+        job_id: expect.stringContaining('{{trigger.job_id}}'),
+        job_title: expect.stringContaining('{{trigger.job_title}}'),
+        apply_at: expect.stringContaining('{{trigger.apply_at}}'),
+        candidate_name: expect.stringContaining('{{trigger.candidate_name}}'),
+        candidate_email: expect.stringContaining('{{trigger.candidate_email}}'),
+        candidate_phone: expect.stringContaining('{{trigger.candidate_phone}}'),
+        download_url: expect.stringContaining('{{trigger.download_url}}'),
+      },
+    });
 
     const aiAgentStep = definition?.steps.find(
       ({ type }) => type === 'AI_AGENT',

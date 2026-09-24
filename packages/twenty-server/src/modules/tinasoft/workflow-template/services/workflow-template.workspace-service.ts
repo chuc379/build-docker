@@ -21,27 +21,27 @@ import { type WorkflowTemplateDTO } from 'src/modules/tinasoft/workflow-template
 import { getWorkflowTemplateLogicFunctionDefinitions } from 'src/modules/tinasoft/workflow-template/catalog/workflow-template-logic-functions.constant';
 import { WorkflowTemplateFactory } from 'src/modules/tinasoft/workflow-template/services/workflow-template.factory';
 import { type CreateWorkflowFromTemplateResult } from 'src/modules/tinasoft/workflow-template/types/workflow-template.type';
+import {
+    CV_INTAKE_EVALUATION_AGENT_UNIVERSAL_IDENTIFIER,
+    JOB_DESCRIPTION_AGENT_UNIVERSAL_IDENTIFIER,
+    getCvIntakeEvaluationAgentId,
+    getJobDescriptionAgentId,
+} from 'src/modules/tinasoft/workflow-template/utils/workflow-template-agent.util';
 import { validateWorkflowTemplateSettings } from 'src/modules/tinasoft/workflow-template/utils/workflow-template-settings.util';
 import {
-  CV_INTAKE_EVALUATION_AGENT_UNIVERSAL_IDENTIFIER,
-  JOB_DESCRIPTION_AGENT_UNIVERSAL_IDENTIFIER,
-  getCvIntakeEvaluationAgentId,
-  getJobDescriptionAgentId,
-} from 'src/modules/tinasoft/workflow-template/utils/workflow-template-agent.util';
-import {
-  WorkflowVersionStatus,
-  type WorkflowVersionWorkspaceEntity,
+    WorkflowVersionStatus,
+    type WorkflowVersionWorkspaceEntity,
 } from 'src/modules/workflow/common/standard-objects/workflow-version.workspace-entity';
 import {
-  WorkflowStatus,
-  type WorkflowWorkspaceEntity,
+    WorkflowStatus,
+    type WorkflowWorkspaceEntity,
 } from 'src/modules/workflow/common/standard-objects/workflow.workspace-entity';
 import { WorkflowSchemaWorkspaceService } from 'src/modules/workflow/workflow-builder/workflow-schema/workflow-schema.workspace-service';
 import { isWorkflowFindRecordsAction } from 'src/modules/workflow/workflow-executor/workflow-actions/record-crud/guards/is-workflow-find-records-action.guard';
 import { type WorkflowAction } from 'src/modules/workflow/workflow-executor/workflow-actions/types/workflow-action.type';
 import {
-  type WorkflowTrigger,
-  WorkflowTriggerType,
+    type WorkflowTrigger,
+    WorkflowTriggerType,
 } from 'src/modules/workflow/workflow-trigger/types/workflow-trigger.type';
 import { type AppLocale, SOURCE_LOCALE } from 'twenty-shared/translations';
 import { isDefined } from 'twenty-shared/utils';
@@ -472,6 +472,11 @@ matchingScore must be the weighted average of the 4 criterion scores (40/30/15/1
         },
       ])
       .execute();
+
+    await this.flatEntityMapsCacheService.invalidateFlatEntityMaps({
+      workspaceId,
+      flatMapsKeys: ['flatAgentMaps', 'flatRoleTargetByAgentIdMaps'],
+    });
   }
 
   private async resolveFindRecordsFieldMetadataIds({
