@@ -395,36 +395,13 @@ Make the description engaging, clear, and professional.`,
           icon: 'IconUserCheck',
           description:
             'Analyzes a candidate CV against the target job and scores the fit using the AHP multi-criteria model',
-          prompt: `You are an expert recruiter specializing in AHP (Analytic Hierarchy Process) candidate screening.
-
-A candidate applied to a job. You must evaluate their fit and return a structured JSON result.
-
-Evaluate based on these criteria and weights:
-1. Skills fit (40%)
-2. Experience (30%)
-3. Education (15%)
-4. Language & soft skills (15%)
-
-Output only a JSON object (no markdown) with exactly these properties:
-- matchingScore: integer 0-100
-- skillsScore: integer 0-100
-- expScore: integer 0-100
-- eduScore: integer 0-100
-- generalScore: integer 0-100
-- recommendation: one of 'RẤT PHÙ HỢP (Ưu tiên phỏng vấn)', 'PHÙ HỢP (Khuyến nghị phỏng vấn)', 'CÂN NHẮC (Cần đánh giá thêm kỹ năng thiếu)', 'KHÔNG PHÙ HỢP (Hồ sơ chưa đạt tiêu chí cốt lõi)'
-- aiEvaluation: a multi-line Vietnamese evaluation that details each of the 4 criteria, the candidate's strengths, gaps and a clear verdict
-
-matchingScore must be the weighted average of the 4 criterion scores (40/30/15/15).`,
+          prompt: `You are an AHP recruiter. Read the candidate CV and return only JSON with four integer scores from 0 to 100: skillsScore, expScore, eduScore, generalScore. Do not calculate a final score, explain, or add fields. The workflow code calculates AHP with weights 40%, 30%, 15%, 15%.`,
           modelId: 'default-smart-model',
           responseFormat: {
             type: 'json',
             schema: {
               type: 'object',
               properties: {
-                matchingScore: {
-                  type: 'number',
-                  description: 'Overall weighted AHP matching score 0-100',
-                },
                 skillsScore: {
                   type: 'number',
                   description: 'Skills fit score 0-100',
@@ -441,24 +418,12 @@ matchingScore must be the weighted average of the 4 criterion scores (40/30/15/1
                   type: 'number',
                   description: 'Language and soft skills score 0-100',
                 },
-                recommendation: {
-                  type: 'string',
-                  description: 'One of the four Vietnamese recommendation tags',
-                },
-                aiEvaluation: {
-                  type: 'string',
-                  description:
-                    'Multi-line Vietnamese evaluation detailing the 4 AHP criteria and the verdict',
-                },
               },
               required: [
-                'matchingScore',
                 'skillsScore',
                 'expScore',
                 'eduScore',
                 'generalScore',
-                'recommendation',
-                'aiEvaluation',
               ],
               additionalProperties: false,
             },

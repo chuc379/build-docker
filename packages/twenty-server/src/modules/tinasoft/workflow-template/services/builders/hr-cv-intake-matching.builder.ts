@@ -56,6 +56,7 @@ export class HrCvIntakeMatchingWorkflowTemplateBuilder
   }: WorkflowTemplateBuildContext): WorkflowTemplateDefinition {
     const mapperStepId = uuidv4();
     const aiEvaluationStepId = uuidv4();
+    const calculateAhpStepId = uuidv4();
     const createCandidateStepId = uuidv4();
     const sendEmailStepId = uuidv4();
 
@@ -64,7 +65,8 @@ export class HrCvIntakeMatchingWorkflowTemplateBuilder
       key: 'pmEmail',
     });
 
-    const { ahpMatching } = getWorkflowTemplateLogicFunctionIds(workspaceId);
+    const { ahpMatching, calculateAhp } =
+      getWorkflowTemplateLogicFunctionIds(workspaceId);
 
     const aiAgentId = getCvIntakeEvaluationAgentId(workspaceId);
 
@@ -77,13 +79,13 @@ export class HrCvIntakeMatchingWorkflowTemplateBuilder
     <h3>👤 {{${mapperStepId}.mappedFullName}}</h3>
     <p>Vị trí ứng tuyển: <strong style="color: #2563eb;">{{${mapperStepId}.mappedJobTitle}}</strong> | Nguồn: {{${mapperStepId}.source}}</p>
     <p>📧 Email: {{${mapperStepId}.mappedEmail}} | 📱 SĐT: {{${mapperStepId}.mappedPhone}}</p>
-    <p>🎯 Điểm phù hợp: <strong style="color: #059669; font-size: 16px;">{{${aiEvaluationStepId}.matchingScore}}%</strong> ({{${aiEvaluationStepId}.recommendation}})</p>
+    <p>🎯 Điểm phù hợp: <strong style="color: #059669; font-size: 16px;">{{${calculateAhpStepId}.matchingScore}}%</strong> ({{${calculateAhpStepId}.recommendation}})</p>
     <p>📄 Tải CV: <a href="{{${mapperStepId}.cvDownloadUrl}}" target="_blank" style="color: #2563eb;">{{${mapperStepId}.cvDownloadUrl}}</a></p>
     {{${mapperStepId}.cvFetchNote}}<br/>
   </div>
   <div style="background: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
     <h4>📊 CHI TIẾT BÀI ĐÁNH GIÁ THEO MÔ HÌNH AHP:</h4>
-    <pre style="background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px dashed #cbd5e1; font-family: inherit; font-size: 13.5px; white-space: pre-wrap;">{{${aiEvaluationStepId}.aiEvaluation}}</pre>
+    <pre style="background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px dashed #cbd5e1; font-family: inherit; font-size: 13.5px; white-space: pre-wrap;">{{${calculateAhpStepId}.aiEvaluation}}</pre>
   </div>
   <div style="text-align: center; margin: 24px 0;">
     <a href="${workspaceUrl}/objects/candidates" style="background-color: #2563eb; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 6px; font-weight: 600; font-size: 14px; display: inline-block;">👉 Xem Hồ sơ trên CRM</a>
@@ -274,15 +276,9 @@ Candidate phone: {{${mapperStepId}.mappedPhone}}
 === CANDIDATE CV TEXT ===
 {{${mapperStepId}.mappedCvText}}
 
-Evaluate the candidate fitness for this job using the AHP multi-criteria model and output strictly the JSON schema requested.`,
+Return only the four raw integer scores requested by the JSON schema. Do not calculate the final score, write an explanation, or add extra fields.`,
             },
             outputSchema: {
-              matchingScore: {
-                type: FieldMetadataType.NUMBER,
-                label: 'Matching Score (%)',
-                isLeaf: true,
-                value: 87,
-              },
               skillsScore: {
                 type: FieldMetadataType.NUMBER,
                 label: 'Skills Score',
@@ -307,17 +303,45 @@ Evaluate the candidate fitness for this job using the AHP multi-criteria model a
                 isLeaf: true,
                 value: 85,
               },
+            },
+            errorHandlingOptions: ERROR_HANDLING_OPTIONS,
+          },
+          nextStepIds: [calculateAhpStepId],
+        },
+        {
+          id: calculateAhpStepId,
+          name: 'Tính điểm AHP và kết luận',
+          type: WorkflowActionType.CODE,
+          valid: true,
+          position: { x: 0, y: 450 },
+          settings: {
+            input: {
+              logicFunctionId: calculateAhp,
+              logicFunctionInput: {
+                skillsScore: `{{${aiEvaluationStepId}.skillsScore}}`,
+                expScore: `{{${aiEvaluationStepId}.expScore}}`,
+                eduScore: `{{${aiEvaluationStepId}.eduScore}}`,
+                generalScore: `{{${aiEvaluationStepId}.generalScore}}`,
+              },
+            },
+            outputSchema: {
+              matchingScore: {
+                type: FieldMetadataType.NUMBER,
+                label: 'Matching Score (%)',
+                isLeaf: true,
+                value: 87,
+              },
               recommendation: {
                 type: FieldMetadataType.TEXT,
                 label: 'Recommendation',
                 isLeaf: true,
-                value: 'Interview',
+                value: 'PHÙ HỢP (Khuyến nghị phỏng vấn)',
               },
               aiEvaluation: {
                 type: FieldMetadataType.TEXT,
-                label: 'AI Evaluation Summary',
+                label: 'AHP Calculation',
                 isLeaf: true,
-                value: 'Strong match',
+                value: 'AHP weighted score',
               },
             },
             errorHandlingOptions: ERROR_HANDLING_OPTIONS,
@@ -329,7 +353,7 @@ Evaluate the candidate fitness for this job using the AHP multi-criteria model a
           name: 'Tự động tạo Candidate trên CRM',
           type: WorkflowActionType.CREATE_RECORD,
           valid: true,
-          position: { x: 0, y: 450 },
+          position: { x: 0, y: 600 },
           settings: {
             input: {
               objectName: 'candidate',
@@ -344,8 +368,8 @@ Evaluate the candidate fitness for this job using the AHP multi-criteria model a
                 pmemail: `{{${mapperStepId}.pmEmail}}`,
                 fullname: `{{${mapperStepId}.mappedFullName}}`,
                 jobtitle: `{{${mapperStepId}.mappedJobTitle}}`,
-                aievaluation: `{{${aiEvaluationStepId}.aiEvaluation}}`,
-                matchingscore: `{{${aiEvaluationStepId}.matchingScore}}`,
+                aievaluation: `{{${calculateAhpStepId}.aiEvaluation}}`,
+                matchingscore: `{{${calculateAhpStepId}.matchingScore}}`,
               },
             },
             outputSchema: {
@@ -365,7 +389,7 @@ Evaluate the candidate fitness for this job using the AHP multi-criteria model a
           name: 'Gửi Email Kết quả cho PM',
           type: WorkflowActionType.SEND_EMAIL,
           valid: true,
-          position: { x: 0, y: 600 },
+          position: { x: 0, y: 750 },
           settings: {
             input: {
               connectedAccountId: '',
@@ -374,7 +398,7 @@ Evaluate the candidate fitness for this job using the AHP multi-criteria model a
                 cc: '',
                 bcc: '',
               },
-              subject: `[{{${mapperStepId}.source}} Matching: {{${aiEvaluationStepId}.matchingScore}}%] Ứng viên {{${mapperStepId}.mappedFullName}} - Vị trí {{${mapperStepId}.mappedJobTitle}}`,
+              subject: `[{{${mapperStepId}.source}} Matching: {{${calculateAhpStepId}.matchingScore}}%] Ứng viên {{${mapperStepId}.mappedFullName}} - Vị trí {{${mapperStepId}.mappedJobTitle}}`,
               body: emailBody,
               files: [],
               inReplyTo: '',

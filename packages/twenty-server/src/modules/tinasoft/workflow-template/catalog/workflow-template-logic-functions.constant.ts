@@ -228,7 +228,12 @@ const AHP_MATCHING_SOURCE = `export const main = async (params) => {
       textStreams.push(literalTexts.join(' '));
     }
 
-    return textStreams.join('\\n').replace(/\\s+/g, ' ').trim();
+    return textStreams
+      .join('\\n')
+      .replace(/[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F]/g, ' ')
+      .replace(/\\s+/g, ' ')
+      .trim()
+      .slice(0, 50000);
   };
 
   const p = params?.trigger?.body || params?.trigger || params?.body || params || {};
@@ -277,6 +282,12 @@ const AHP_MATCHING_SOURCE = `export const main = async (params) => {
     cv = 'CV_DOWNLOAD_URL: ' + cvDownloadUrl;
   }
 
+  cv = String(cv)
+    .replace(/[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F]/g, ' ')
+    .replace(/\\s+/g, ' ')
+    .trim()
+    .slice(0, 50000);
+
   return {
     source: sourceName,
     pmEmail,
@@ -289,6 +300,35 @@ const AHP_MATCHING_SOURCE = `export const main = async (params) => {
     mappedPhone: phone,
     mappedJobTitle: jobTitle,
     mappedCvText: cv
+  };
+};`;
+
+const CALCULATE_AHP_SOURCE = `export const main = async (params) => {
+  const clampScore = (value) => Math.max(0, Math.min(100, Number(value) || 0));
+  const skillsScore = clampScore(params?.skillsScore);
+  const expScore = clampScore(params?.expScore);
+  const eduScore = clampScore(params?.eduScore);
+  const generalScore = clampScore(params?.generalScore);
+  const matchingScore = Math.round(
+    skillsScore * 0.4 + expScore * 0.3 + eduScore * 0.15 + generalScore * 0.15,
+  );
+  const recommendation =
+    matchingScore >= 80
+      ? 'RẤT PHÙ HỢP (Ưu tiên phỏng vấn)'
+      : matchingScore >= 65
+        ? 'PHÙ HỢP (Khuyến nghị phỏng vấn)'
+        : matchingScore >= 50
+          ? 'CÂN NHẮC (Cần đánh giá thêm kỹ năng thiếu)'
+          : 'KHÔNG PHÙ HỢP (Hồ sơ chưa đạt tiêu chí cốt lõi)';
+
+  return {
+    matchingScore,
+    skillsScore,
+    expScore,
+    eduScore,
+    generalScore,
+    recommendation,
+    aiEvaluation: 'AHP = Skills x 40% + Experience x 30% + Education x 15% + Language & soft skills x 15%.',
   };
 };`;
 
@@ -571,6 +611,10 @@ export const getWorkflowTemplateLogicFunctionIds = (workspaceId: string) => ({
     `${workspaceId}:cv-intake:ahp-matching`,
     WORKFLOW_TEMPLATE_LOGIC_FUNCTION_NAMESPACE,
   ),
+  calculateAhp: uuidv5(
+    `${workspaceId}:cv-intake:calculate-ahp`,
+    WORKFLOW_TEMPLATE_LOGIC_FUNCTION_NAMESPACE,
+  ),
   interviewSchedule: uuidv5(
     `${workspaceId}:hr-interview:schedule-datetime`,
     WORKFLOW_TEMPLATE_LOGIC_FUNCTION_NAMESPACE,
@@ -590,6 +634,7 @@ export const getWorkflowTemplateLogicFunctionDefinitions = (
     filterTodaysBirthdays,
     addOneDay,
     ahpMatching,
+    calculateAhp,
     interviewSchedule,
     interviewSignature,
   } = getWorkflowTemplateLogicFunctionIds(workspaceId);
@@ -628,6 +673,13 @@ export const getWorkflowTemplateLogicFunctionDefinitions = (
       description:
         'Bóc tách dữ liệu ứng viên từ Webhook tuyển dụng (TopCV / form), tải nội dung CV từ download_url và chuẩn bị dữ liệu cho bước đánh giá AHP bằng AI.',
       sourceHandlerCode: AHP_MATCHING_SOURCE,
+    },
+    {
+      id: calculateAhp,
+      name: 'Calculate AHP candidate score',
+      description:
+        'Calculates the weighted AHP score and recommendation from the four AI-extracted criterion scores.',
+      sourceHandlerCode: CALCULATE_AHP_SOURCE,
     },
     {
       id: interviewSchedule,

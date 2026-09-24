@@ -104,6 +104,7 @@ describe('HR workflow templates', () => {
     expect(definition?.steps.map(({ type }) => type)).toEqual([
       'CODE',
       'AI_AGENT',
+      'CODE',
       'CREATE_RECORD',
       'SEND_EMAIL',
     ]);
