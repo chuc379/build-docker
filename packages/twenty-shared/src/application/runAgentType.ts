@@ -1,8 +1,21 @@
 export type RunAgentMessageRole = 'user' | 'assistant';
 
+export type RunAgentMessageContentPart =
+  | {
+      type: 'text';
+      text: string;
+    }
+  | {
+      type: 'file' | 'image';
+      data: string | Uint8Array;
+      mediaType?: string;
+      mimeType?: string;
+      filename?: string;
+    };
+
 export type RunAgentMessage = {
   role: RunAgentMessageRole;
-  content: string;
+  content: string | RunAgentMessageContentPart[];
 };
 
 export type RunAgentInput = {

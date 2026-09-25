@@ -1,6 +1,7 @@
 import { Field, InputType } from '@nestjs/graphql';
 
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { IsEnum } from 'class-validator';
+import GraphQLJSON from 'graphql-type-json';
 import { type RunAgentMessage } from 'twenty-shared/application';
 
 import { RunAgentMessageRole } from 'src/engine/metadata-modules/ai/ai-agent-execution/enums/run-agent-message-role.enum';
@@ -11,8 +12,6 @@ export class RunAgentMessageInputDTO implements RunAgentMessage {
   @Field(() => RunAgentMessageRole)
   role: RunAgentMessageRole;
 
-  @IsString()
-  @IsNotEmpty()
-  @Field()
-  content: string;
+  @Field(() => GraphQLJSON)
+  content: RunAgentMessage['content'];
 }
