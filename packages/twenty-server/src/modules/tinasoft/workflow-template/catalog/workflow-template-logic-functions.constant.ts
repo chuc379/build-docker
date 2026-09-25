@@ -291,9 +291,12 @@ const AHP_MATCHING_SOURCE = `export const main = async (params) => {
     cv.includes('JFIF') ||
     /[\u0000-\u0008\u000B\u000C\u000E-\u001F]/.test(cv);
 
-  if (looksLikePdfBinary) {
+  if (looksLikePdfBinary && !cvDownloadUrl) {
     cv = '';
-    fetchNote = 'CV là PDF scan/hình ảnh, không có text layer. Cần OCR trước khi AI có thể chấm điểm.';
+    fetchNote = 'CV là PDF scan/hình ảnh, không có text layer. Cần OCR hoặc đọc file đính kèm để AI chấm điểm.';
+  } else if (looksLikePdfBinary && cvDownloadUrl) {
+    fetchNote = 'CV là PDF scan/hình ảnh; file đính kèm sẽ được AI đọc trực tiếp để chấm điểm.';
+    cv = `SCANNED_CV_FILE_URL: ${cvDownloadUrl}`;
   }
 
   cv = String(cv)

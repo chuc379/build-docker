@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 
+import { type ModelMessage } from 'ai';
 import { resolveInput } from 'twenty-shared/utils';
 
 import { type WorkflowAction } from 'src/modules/workflow/workflow-executor/interfaces/workflow-action.interface';
@@ -12,8 +13,8 @@ import { AgentEntity } from 'src/engine/metadata-modules/ai/ai-agent/entities/ag
 import { InjectWorkspaceScopedRepository } from 'src/engine/twenty-orm/workspace-scoped-repository/inject-workspace-scoped-repository.decorator';
 import { WorkspaceScopedRepository } from 'src/engine/twenty-orm/workspace-scoped-repository/workspace-scoped-repository';
 import {
-  WorkflowStepExecutorException,
-  WorkflowStepExecutorExceptionCode,
+    WorkflowStepExecutorException,
+    WorkflowStepExecutorExceptionCode,
 } from 'src/modules/workflow/workflow-executor/exceptions/workflow-step-executor.exception';
 import { WorkflowExecutionContextService } from 'src/modules/workflow/workflow-executor/services/workflow-execution-context.service';
 import { type WorkflowActionInput } from 'src/modules/workflow/workflow-executor/types/workflow-action-input';
@@ -54,7 +55,7 @@ export class AiAgentWorkflowAction implements WorkflowAction {
       );
     }
 
-    const { agentId, prompt } = step.settings.input;
+    const { agentId, prompt, fileUrl } = step.settings.input;
     const workspaceId = runInfo.workspaceId;
 
     let agent: AgentEntity | null = null;
@@ -82,10 +83,46 @@ export class AiAgentWorkflowAction implements WorkflowAction {
 
     const startedAtMs = Date.now();
 
+    const resolvedPrompt = resolveInput(prompt, context) as string;
+    const resolvedFileUrl = resolveInput(fileUrl, context) as string;
+    const messageContent: ModelMessage['content'] = [
+      { type: 'text', text: resolvedPrompt },
+    ];
+
+    if (resolvedFileUrl?.startsWith('http')) {
+      try {
+        const response = await fetch(resolvedFileUrl);
+
+        if (response.ok) {
+          const rawMediaType =
+            response.headers.get('content-type')?.split(';')[0] ?? '';
+          const fileData = new Uint8Array(await response.arrayBuffer());
+
+          const inferredMediaType = this.inferMediaTypeFromUrlOrBytes({
+            url: resolvedFileUrl,
+            mediaType: rawMediaType,
+            fileData,
+          });
+
+          if (inferredMediaType) {
+            messageContent.push({
+              type: 'file',
+              data: fileData,
+              mediaType: inferredMediaType,
+            });
+          }
+        }
+      } catch (error) {
+        this.logger.warn(
+          `Could not attach workflow AI file: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    }
+
     const executionResult = await this.aiAgentExecutionService.executeAgent({
       agent,
       messages: [
-        { role: 'user', content: resolveInput(prompt, context) as string },
+        { role: 'user', content: messageContent },
       ],
       baseSystemPrompt: WORKFLOW_BASE_SYSTEM_PROMPT,
       actorContext: executionContext.isActingOnBehalfOfUser
@@ -116,6 +153,49 @@ export class AiAgentWorkflowAction implements WorkflowAction {
     return {
       result: executionResult.result,
     };
+  }
+
+  private inferMediaTypeFromUrlOrBytes({
+    url,
+    mediaType,
+    fileData,
+  }: {
+    url: string;
+    mediaType?: string;
+    fileData: Uint8Array;
+  }): string | null {
+    if (mediaType && mediaType !== 'application/octet-stream') {
+      return mediaType;
+    }
+
+    try {
+      const pathname = new URL(url).pathname.toLowerCase();
+      const extension = pathname.split('.').pop();
+
+      if (extension === 'pdf') {
+        return 'application/pdf';
+      }
+
+      if (['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp'].includes(extension ?? '')) {
+        return `image/${extension === 'jpg' ? 'jpeg' : extension}`;
+      }
+    } catch {
+      // ignore invalid URL; fall through to signature detection
+    }
+
+    if (fileData.length >= 4 && fileData[0] === 0x25 && fileData[1] === 0x50 && fileData[2] === 0x44 && fileData[3] === 0x46) {
+      return 'application/pdf';
+    }
+
+    if (fileData.length >= 8 && fileData[0] === 0x89 && fileData[1] === 0x50 && fileData[2] === 0x4e && fileData[3] === 0x47) {
+      return 'image/png';
+    }
+
+    if (fileData.length >= 2 && fileData[0] === 0xff && fileData[1] === 0xd8) {
+      return 'image/jpeg';
+    }
+
+    return mediaType || null;
   }
 
   private async persistStepLog({
