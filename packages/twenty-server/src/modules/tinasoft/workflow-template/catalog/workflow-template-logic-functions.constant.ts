@@ -296,7 +296,7 @@ const AHP_MATCHING_SOURCE = `export const main = async (params) => {
     fetchNote = 'CV là PDF scan/hình ảnh, không có text layer. Cần OCR hoặc đọc file đính kèm để AI chấm điểm.';
   } else if (looksLikePdfBinary && cvDownloadUrl) {
     fetchNote = 'CV là PDF scan/hình ảnh; file đính kèm sẽ được AI đọc trực tiếp để chấm điểm.';
-    cv = `SCANNED_CV_FILE_URL: ${cvDownloadUrl}`;
+    cv = 'SCANNED_CV_FILE_URL: ' + cvDownloadUrl;
   }
 
   cv = String(cv)
