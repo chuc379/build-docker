@@ -6,5 +6,6 @@ export const workflowAiAgentActionSettingsSchema =
     input: z.object({
       agentId: z.string().optional(),
       prompt: z.string().optional(),
+      fileUrl: z.string().optional(),
     }),
   });

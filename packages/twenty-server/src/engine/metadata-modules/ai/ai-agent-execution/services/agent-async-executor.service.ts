@@ -11,7 +11,6 @@ import {
   type StepResult,
   type ToolSet,
 } from 'ai';
-import { type RunAgentMessage } from 'twenty-shared/application';
 import { AUTO_SELECT_SMART_MODEL_ID } from 'twenty-shared/constants';
 import { type ActorMetadata } from 'twenty-shared/types';
 import {
@@ -262,7 +261,7 @@ export class AgentAsyncExecutorService {
     toolLoadingStrategy = 'preload',
   }: {
     agent: AgentEntity | null;
-    messages: RunAgentMessage[];
+    messages: Array<Pick<ModelMessage, 'role' | 'content'>>;
     baseSystemPrompt: string;
     actorContext?: ActorMetadata;
     authContext?: WorkspaceAuthContext;

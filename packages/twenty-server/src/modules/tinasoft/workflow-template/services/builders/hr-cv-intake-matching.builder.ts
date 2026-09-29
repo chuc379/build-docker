@@ -263,6 +263,7 @@ export class HrCvIntakeMatchingWorkflowTemplateBuilder
           settings: {
             input: {
               agentId: aiAgentId,
+              fileUrl: `{{${mapperStepId}.cvDownloadUrl}}`,
               prompt: `You are an expert recruiter specializing in AHP candidate screening. Evaluate the candidate's CV against the target job and return a structured JSON verdict.
 
 Target job: {{${mapperStepId}.mappedJobTitle}}

@@ -1410,6 +1410,16 @@ export class ConfigVariables {
   WORKER_EXCLUDED_QUEUES: string[] = [];
 
   @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.ADVANCED_SETTINGS,
+    description:
+      'Comma-separated list of workspace ids allowed to use the headless browser to download protected CV files in the CV intake workflow. Empty means disabled for every workspace.',
+    isEnvOnly: true,
+    type: ConfigVariableType.ARRAY,
+  })
+  @IsOptional()
+  CV_HEADLESS_BROWSER_WORKSPACE_ID_ALLOWLIST: string[] = [];
+
+  @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.SERVER_CONFIG,
     description: 'Node environment (development, production, etc.)',
     type: ConfigVariableType.ENUM,

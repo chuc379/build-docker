@@ -152,6 +152,7 @@
     "path-to-regexp": "^8.4.0",
     "pg": "8.12.0",
     "planer": "1.2.0",
+    "playwright": "1.60.0",
     "pluralize": "8.0.0",
     "postal-mime": "^2.6.1",
     "psl": "^1.9.0",
