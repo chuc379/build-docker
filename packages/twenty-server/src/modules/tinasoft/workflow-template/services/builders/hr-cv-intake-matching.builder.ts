@@ -108,6 +108,9 @@ export class HrCvIntakeMatchingWorkflowTemplateBuilder
             candidate_phone: '0901234567',
             download_url:
               'https://tuyendung-api.topcv.vn/api/v1/cv-management/onetime-download?token=<token>',
+            cv_file_url: 'http://localhost:8000/files/cv_sample.pdf',
+            cv_text: 'Nội dung CV ứng viên...',
+            pm_email: 'tuyendung@tinasoft.vn',
           },
           outputSchema: {
             job_id: {
@@ -152,6 +155,24 @@ export class HrCvIntakeMatchingWorkflowTemplateBuilder
               isLeaf: true,
               value: 'https://.../onetime-download?token=...',
             },
+            cv_file_url: {
+              type: FieldMetadataType.TEXT,
+              label: 'CV File URL',
+              isLeaf: true,
+              value: 'http://.../files/cv.pdf',
+            },
+            cv_text: {
+              type: FieldMetadataType.TEXT,
+              label: 'CV Text',
+              isLeaf: true,
+              value: 'CV content',
+            },
+            pm_email: {
+              type: FieldMetadataType.TEXT,
+              label: 'PM Email',
+              isLeaf: true,
+              value: 'tuyendung@tinasoft.vn',
+            },
           },
           authentication: null,
         },
@@ -178,6 +199,10 @@ export class HrCvIntakeMatchingWorkflowTemplateBuilder
                     candidate_email: '{{trigger.candidate_email}}',
                     candidate_phone: '{{trigger.candidate_phone}}',
                     download_url: '{{trigger.download_url}}',
+                    cv_file_url: '{{trigger.cv_file_url}}',
+                    cv_text: '{{trigger.cv_text}}',
+                    pm_email: '{{trigger.pm_email}}',
+                    source: '{{trigger.source}}',
                   },
                 },
               },
@@ -212,6 +237,12 @@ export class HrCvIntakeMatchingWorkflowTemplateBuilder
                 label: 'CV Download URL',
                 isLeaf: true,
                 value: 'https://.../onetime-download?token=...',
+              },
+              cvFile: {
+                type: FieldMetadataType.TEXT,
+                label: 'CV File',
+                isLeaf: true,
+                value: 'http://.../files/cv.pdf',
               },
               cvFetchNote: {
                 type: FieldMetadataType.TEXT,
@@ -264,6 +295,7 @@ export class HrCvIntakeMatchingWorkflowTemplateBuilder
             input: {
               agentId: aiAgentId,
               prompt: `You are an expert recruiter specializing in AHP candidate screening. Evaluate the candidate's CV against the target job and return a structured JSON verdict.
+Strictly do not call any tools.
 
 Target job: {{${mapperStepId}.mappedJobTitle}}
 Job ID: {{${mapperStepId}.jobId}}
@@ -276,7 +308,7 @@ Candidate phone: {{${mapperStepId}.mappedPhone}}
 === CANDIDATE CV TEXT ===
 {{${mapperStepId}.mappedCvText}}
 
-Return only the four raw integer scores requested by the JSON schema. Do not calculate the final score, write an explanation, or add extra fields.`,
+Return only the four raw integer scores requested by the JSON schema. If the CV text is only a URL or empty, assign 0 to all four scores. Do not calculate the final score, write an explanation, or add extra fields.`,
             },
             outputSchema: {
               skillsScore: {
@@ -362,6 +394,7 @@ Return only the four raw integer scores requested by the JSON schema. Do not cal
                 email: `{{${mapperStepId}.mappedEmail}}`,
                 cvtext: `{{${mapperStepId}.mappedCvText}}`,
                 cvdownloadurl: `{{${mapperStepId}.cvDownloadUrl}}`,
+                cvfile: `{{${mapperStepId}.cvFile}}`,
                 jobid: `{{${mapperStepId}.jobId}}`,
                 applyat: `{{${mapperStepId}.applyAt}}`,
                 status: 'SCREENING',
