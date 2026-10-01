@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 
 import { FileFolder } from 'twenty-shared/types';
-import { resolveInput } from 'twenty-shared/utils';
+import { isDefined, resolveInput } from 'twenty-shared/utils';
 
 import { FileService } from 'src/engine/core-modules/file/services/file.service';
 import { type WorkflowAction } from 'src/modules/workflow/workflow-executor/interfaces/workflow-action.interface';
@@ -19,6 +19,10 @@ import { type WorkflowActionOutput } from 'src/modules/workflow/workflow-executo
 import { findStepOrThrow } from 'src/modules/workflow/workflow-executor/utils/find-step-or-throw.util';
 import { getUserFromAuthContext } from 'src/modules/workflow/workflow-executor/utils/get-user-from-auth-context.util';
 import { isWorkflowCodeAction } from 'src/modules/workflow/workflow-executor/workflow-actions/code/guards/is-workflow-code-action.guard';
+import {
+  REMOTE_FILES_INPUT_KEY,
+  RemoteFilesFieldService,
+} from 'src/modules/workflow/workflow-executor/workflow-actions/code/services/remote-files-field.service';
 import { type WorkflowCodeActionInput } from 'src/modules/workflow/workflow-executor/workflow-actions/code/types/workflow-code-action-input.type';
 import { buildCodeStepLog } from 'src/modules/workflow/workflow-executor/workflow-actions/code/utils/build-code-step-log.util';
 import { WorkflowRunStepLogWorkspaceService } from 'src/modules/workflow/workflow-runner/workflow-run/workflow-run-step-log.workspace-service';
@@ -33,6 +37,7 @@ export class CodeWorkflowAction implements WorkflowAction {
     private readonly workflowExecutionContextService: WorkflowExecutionContextService,
     private readonly workflowRunStepLogService: WorkflowRunStepLogWorkspaceService,
     private readonly fileService: FileService,
+    private readonly remoteFilesFieldService: RemoteFilesFieldService,
   ) {}
 
   async execute({
@@ -60,8 +65,11 @@ export class CodeWorkflowAction implements WorkflowAction {
 
     const { workspaceId } = runInfo;
 
-    const logicFunctionInput = await this.embedSignatureImage({
-      input: workflowActionInput.logicFunctionInput,
+    const logicFunctionInput = await this.archiveRemoteFiles({
+      input: await this.embedSignatureImage({
+        input: workflowActionInput.logicFunctionInput,
+        workspaceId,
+      }),
       workspaceId,
     });
 
@@ -87,6 +95,33 @@ export class CodeWorkflowAction implements WorkflowAction {
     }
 
     return { result: result.data || {} };
+  }
+
+  // Short-lived intake links (TopCV one-time tokens, the intake service's own
+  // cv_file_url) are dead within minutes, so the bytes are pulled once, here,
+  // and archived in the workspace storage. The logic function then only forwards
+  // the resulting `{ fileId, label }` items to the record's FILES field.
+  private async archiveRemoteFiles({
+    input,
+    workspaceId,
+  }: {
+    input: WorkflowCodeActionInput['logicFunctionInput'];
+    workspaceId: string;
+  }): Promise<WorkflowCodeActionInput['logicFunctionInput']> {
+    const requests = input[REMOTE_FILES_INPUT_KEY];
+
+    if (!isDefined(requests)) {
+      return input;
+    }
+
+    return {
+      ...input,
+      [REMOTE_FILES_INPUT_KEY]:
+        await this.remoteFilesFieldService.archiveRemoteFiles({
+          requests,
+          workspaceId,
+        }),
+    };
   }
 
   private async embedSignatureImage({

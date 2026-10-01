@@ -6,7 +6,14 @@ import { type ObjectMetadataService } from 'src/engine/metadata-modules/object-m
 
 const CANDIDATE_OBJECT_NAME_SINGULAR = 'candidate';
 
-const CANDIDATE_OBJECT_FIELDS = [
+interface CandidateFieldDefinition {
+  type: FieldMetadataType;
+  name: string;
+  label: string;
+  settings?: { maxNumberOfValues?: number };
+}
+
+const CANDIDATE_OBJECT_FIELDS: CandidateFieldDefinition[] = [
   {
     type: FieldMetadataType.TEXT,
     name: 'email',
@@ -33,14 +40,10 @@ const CANDIDATE_OBJECT_FIELDS = [
     label: 'CV Text',
   },
   {
-    type: FieldMetadataType.TEXT,
-    name: 'cvdownloadurl',
-    label: 'CV Download URL',
-  },
-  {
-    type: FieldMetadataType.TEXT,
+    type: FieldMetadataType.FILES,
     name: 'cvfile',
     label: 'CV File',
+    settings: { maxNumberOfValues: 1 },
   },
   {
     type: FieldMetadataType.TEXT,
@@ -78,10 +81,12 @@ export const prefillCandidateCustomObject = async ({
   objectMetadataService: ObjectMetadataService;
   fieldMetadataService: FieldMetadataService;
 }): Promise<void> => {
-  const existingObject =
-    await objectMetadataService.findOneWithinWorkspace(workspaceId, {
+  const existingObject = await objectMetadataService.findOneWithinWorkspace(
+    workspaceId,
+    {
       where: { nameSingular: CANDIDATE_OBJECT_NAME_SINGULAR },
-    });
+    },
+  );
 
   const candidateObject = isDefined(existingObject)
     ? existingObject
@@ -104,15 +109,44 @@ export const prefillCandidateCustomObject = async ({
     limit: 1000,
   });
 
-  const existingFieldNames = new Set(existingFields.map(({ name }) => name));
+  const existingFieldsByName = new Map(
+    existingFields.map((field) => [field.name, field]),
+  );
+
+  // A previous release shipped `cvfile` as TEXT and held the intake link there.
+  // That link expires within minutes, so the stored value is worthless and the
+  // field has to become a real FILES field: drop it and let the create below
+  // rebuild it with the right type. Only this field is reconciled, the other
+  // ones stay untouched so a customization is never overwritten.
+  const reconciledFieldNames = new Set(['cvfile']);
+
+  for (const { name, type } of CANDIDATE_OBJECT_FIELDS) {
+    const existingField = existingFieldsByName.get(name);
+
+    if (
+      !reconciledFieldNames.has(name) ||
+      !isDefined(existingField) ||
+      existingField.type === type
+    ) {
+      continue;
+    }
+
+    await fieldMetadataService.deleteOneField({
+      deleteOneFieldInput: { id: existingField.id },
+      workspaceId,
+    });
+
+    existingFieldsByName.delete(name);
+  }
 
   const missingFieldInputs = CANDIDATE_OBJECT_FIELDS.filter(
-    ({ name }) => !existingFieldNames.has(name),
-  ).map(({ type, name, label }) => ({
+    ({ name }) => !existingFieldsByName.has(name),
+  ).map(({ type, name, label, settings }) => ({
     objectMetadataId: candidateObject.id,
     type,
     name,
     label,
+    settings,
   }));
 
   if (missingFieldInputs.length === 0) {

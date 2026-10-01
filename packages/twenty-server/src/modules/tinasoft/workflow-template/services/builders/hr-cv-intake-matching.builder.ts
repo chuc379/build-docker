@@ -19,9 +19,7 @@ import { getStringWorkflowTemplateSetting } from 'src/modules/tinasoft/workflow-
 import { WorkflowTriggerType } from 'src/modules/workflow/workflow-trigger/types/workflow-trigger.type';
 
 @Injectable()
-export class HrCvIntakeMatchingWorkflowTemplateBuilder
-  implements IWorkflowTemplateBuilder
-{
+export class HrCvIntakeMatchingWorkflowTemplateBuilder implements IWorkflowTemplateBuilder {
   readonly id = 'hr-cv-intake-matching' as const;
 
   getDTO(_workspaceDisplayName: string, i18n?: I18n): WorkflowTemplateDTO {
@@ -80,7 +78,7 @@ export class HrCvIntakeMatchingWorkflowTemplateBuilder
     <p>Vị trí ứng tuyển: <strong style="color: #2563eb;">{{${mapperStepId}.mappedJobTitle}}</strong> | Nguồn: {{${mapperStepId}.source}}</p>
     <p>📧 Email: {{${mapperStepId}.mappedEmail}} | 📱 SĐT: {{${mapperStepId}.mappedPhone}}</p>
     <p>🎯 Điểm phù hợp: <strong style="color: #059669; font-size: 16px;">{{${calculateAhpStepId}.matchingScore}}%</strong> ({{${calculateAhpStepId}.recommendation}})</p>
-    <p>📄 Tải CV: <a href="{{${mapperStepId}.cvDownloadUrl}}" target="_blank" style="color: #2563eb;">{{${mapperStepId}.cvDownloadUrl}}</a></p>
+    <p>📄 File CV gốc: <strong>{{${mapperStepId}.cvFileName}}</strong> (đã lưu trong hồ sơ ứng viên)</p>
     {{${mapperStepId}.cvFetchNote}}<br/>
   </div>
   <div style="background: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
@@ -106,9 +104,8 @@ export class HrCvIntakeMatchingWorkflowTemplateBuilder
             candidate_name: 'Nguyễn Văn A',
             candidate_email: 'candidate.test@example.com',
             candidate_phone: '0901234567',
-            download_url:
-              'https://tuyendung-api.topcv.vn/api/v1/cv-management/onetime-download?token=<token>',
             cv_file_url: 'http://localhost:8000/files/cv_sample.pdf',
+            cv_filename: 'Nguyen-Van-A.pdf',
             cv_text: 'Nội dung CV ứng viên...',
             pm_email: 'tuyendung@tinasoft.vn',
           },
@@ -149,17 +146,17 @@ export class HrCvIntakeMatchingWorkflowTemplateBuilder
               isLeaf: true,
               value: '0901234567',
             },
-            download_url: {
-              type: FieldMetadataType.TEXT,
-              label: 'CV Download URL',
-              isLeaf: true,
-              value: 'https://.../onetime-download?token=...',
-            },
             cv_file_url: {
               type: FieldMetadataType.TEXT,
               label: 'CV File URL',
               isLeaf: true,
               value: 'http://.../files/cv.pdf',
+            },
+            cv_filename: {
+              type: FieldMetadataType.TEXT,
+              label: 'CV Filename',
+              isLeaf: true,
+              value: 'Nguyen-Van-A.pdf',
             },
             cv_text: {
               type: FieldMetadataType.TEXT,
@@ -182,7 +179,7 @@ export class HrCvIntakeMatchingWorkflowTemplateBuilder
       steps: [
         {
           id: mapperStepId,
-          name: 'Universal Mapper & Tải CV Từ Webhook',
+          name: 'Universal Mapper & Lưu bản gốc CV',
           type: WorkflowActionType.CODE,
           valid: true,
           position: { x: 0, y: 150 },
@@ -198,13 +195,21 @@ export class HrCvIntakeMatchingWorkflowTemplateBuilder
                     candidate_name: '{{trigger.candidate_name}}',
                     candidate_email: '{{trigger.candidate_email}}',
                     candidate_phone: '{{trigger.candidate_phone}}',
-                    download_url: '{{trigger.download_url}}',
                     cv_file_url: '{{trigger.cv_file_url}}',
+                    cv_filename: '{{trigger.cv_filename}}',
                     cv_text: '{{trigger.cv_text}}',
                     pm_email: '{{trigger.pm_email}}',
                     source: '{{trigger.source}}',
                   },
                 },
+                remoteFiles: [
+                  {
+                    url: '{{trigger.cv_file_url}}',
+                    filename: '{{trigger.cv_filename}}',
+                    objectNameSingular: 'candidate',
+                    fieldName: 'cvfile',
+                  },
+                ],
               },
             },
             outputSchema: {
@@ -232,17 +237,23 @@ export class HrCvIntakeMatchingWorkflowTemplateBuilder
                 isLeaf: true,
                 value: '2026-09-24 09:34:19',
               },
-              cvDownloadUrl: {
-                type: FieldMetadataType.TEXT,
-                label: 'CV Download URL',
-                isLeaf: true,
-                value: 'https://.../onetime-download?token=...',
-              },
               cvFile: {
                 type: FieldMetadataType.TEXT,
-                label: 'CV File',
+                label: 'CV File URL',
                 isLeaf: true,
                 value: 'http://.../files/cv.pdf',
+              },
+              cvFileName: {
+                type: FieldMetadataType.TEXT,
+                label: 'CV Filename',
+                isLeaf: true,
+                value: 'Nguyen-Van-A.pdf',
+              },
+              cvFileAttachments: {
+                type: 'array',
+                label: 'Archived CV File',
+                isLeaf: true,
+                value: [{ fileId: '...', label: '...' }],
               },
               cvFetchNote: {
                 type: FieldMetadataType.TEXT,
@@ -294,9 +305,10 @@ export class HrCvIntakeMatchingWorkflowTemplateBuilder
           settings: {
             input: {
               agentId: aiAgentId,
-              fileUrl: `{{${mapperStepId}.cvDownloadUrl}}`,
+              fileUrl: '',
               prompt: `You are an expert recruiter specializing in AHP candidate screening. Evaluate the candidate's CV against the target job and return a structured JSON verdict.
 Strictly do not call any tools.
+The CV content below is the complete CV text extracted upstream, so never ask for or download the CV file.
 
 Target job: {{${mapperStepId}.mappedJobTitle}}
 Job ID: {{${mapperStepId}.jobId}}
@@ -309,7 +321,7 @@ Candidate phone: {{${mapperStepId}.mappedPhone}}
 === CANDIDATE CV TEXT ===
 {{${mapperStepId}.mappedCvText}}
 
-Return only the four raw integer scores requested by the JSON schema. If the CV text is only a URL or empty, assign 0 to all four scores. Do not calculate the final score, write an explanation, or add extra fields.`,
+Return only the four raw integer scores requested by the JSON schema. If the CV text is empty, assign 0 to all four scores. Do not calculate the final score, write an explanation, or add extra fields.`,
             },
             outputSchema: {
               skillsScore: {
@@ -394,8 +406,7 @@ Return only the four raw integer scores requested by the JSON schema. If the CV 
                 name: `{{${mapperStepId}.mappedFullName}}`,
                 email: `{{${mapperStepId}.mappedEmail}}`,
                 cvtext: `{{${mapperStepId}.mappedCvText}}`,
-                cvdownloadurl: `{{${mapperStepId}.cvDownloadUrl}}`,
-                cvfile: `{{${mapperStepId}.cvFile}}`,
+                cvfile: `{{${mapperStepId}.cvFileAttachments}}`,
                 jobid: `{{${mapperStepId}.jobId}}`,
                 applyat: `{{${mapperStepId}.applyAt}}`,
                 status: 'SCREENING',

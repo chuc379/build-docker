@@ -165,77 +165,6 @@ const ADD_ONE_DAY_SOURCE = `export const main = async (params) => {
 };`;
 
 const AHP_MATCHING_SOURCE = `export const main = async (params) => {
-  const decodePdfLiteral = (value) => value
-    .replace(/\\\\([nrtbf()\\\\])/g, (_, escaped) => ({
-      n: '\\n',
-      r: '\\r',
-      t: '\\t',
-      b: '\\b',
-      f: '\\f',
-      '(': '(',
-      ')': ')',
-      '\\\\': '\\\\',
-    }[escaped] || escaped));
-
-  const extractPdfText = async (buffer) => {
-    const bytes = new Uint8Array(buffer);
-    const decoder = new TextDecoder('latin1');
-    const source = decoder.decode(bytes);
-    const textStreams = [];
-    const streamPattern = /<<([\\s\\S]*?)>>\\s*stream[\\r\\n]+([\\s\\S]*?)endstream/g;
-    let streamMatch;
-
-    while ((streamMatch = streamPattern.exec(source)) !== null) {
-      const dictionary = streamMatch[1];
-      const streamStart = streamMatch.index + streamMatch[0].indexOf(streamMatch[2]);
-      let streamBytes = bytes.slice(streamStart, streamStart + streamMatch[2].length);
-
-      if (dictionary.includes('/FlateDecode') && typeof DecompressionStream === 'function') {
-        try {
-          const decompressionStream = new DecompressionStream('deflate');
-          const decompressed = new Blob([streamBytes]).stream().pipeThrough(decompressionStream);
-          streamBytes = new Uint8Array(await new Response(decompressed).arrayBuffer());
-        } catch (_) {
-          continue;
-        }
-      }
-
-      const streamText = decoder.decode(streamBytes);
-      const literalTexts = [];
-      const literalPattern = /\\(((?:\\\\.|[^\\\\)])*)\\)\\s*Tj/g;
-      let literalMatch;
-
-      while ((literalMatch = literalPattern.exec(streamText)) !== null) {
-        literalTexts.push(decodePdfLiteral(literalMatch[1]));
-      }
-
-      const arrayPattern = /\\[([\\s\\S]*?)\\]\\s*TJ/g;
-      let arrayMatch;
-
-      while ((arrayMatch = arrayPattern.exec(streamText)) !== null) {
-        const arrayText = arrayMatch[1]
-          .replace(/\\(((?:\\\\.|[^\\\\)])*)\\)/g, (_, value) => decodePdfLiteral(value))
-          .replace(/<([0-9A-Fa-f]+)>/g, (_, value) => {
-            try {
-              return String.fromCharCode(...value.match(/../g).map((byte) => parseInt(byte, 16)));
-            } catch (_) {
-              return '';
-            }
-          });
-        literalTexts.push(arrayText);
-      }
-
-      textStreams.push(literalTexts.join(' '));
-    }
-
-    return textStreams
-      .join('\\n')
-      .replace(/[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F]/g, ' ')
-      .replace(/\\s+/g, ' ')
-      .trim()
-      .slice(0, 50000);
-  };
-
   const p = params?.trigger?.body || params?.trigger || params?.body || params || {};
   const data = (p.data && typeof p.data === 'object') ? p.data : {};
 
@@ -244,63 +173,22 @@ const AHP_MATCHING_SOURCE = `export const main = async (params) => {
   const phone = p.candidate_phone || data.candidate_phone || p.phone || p.phoneNumber || data.phone || '';
   const jobId = p.job_id || data.job_id || p.jobId || data.jobId || '';
   const applyAt = p.apply_at || data.apply_at || p.applyAt || data.applied_at || '';
-  const cvDownloadUrl = p.download_url || data.download_url || p.downloadUrl || data.downloadUrl || p.cv_download_url || '';
-  const cvFile = p.cv_file_url || data.cv_file_url || p.cv_file || data.cv_file || p.cvfile || data.cvfile || '';
   const pmEmail = p.pm_email || data.pm_email || p.pmEmail || p.hr_email || 'tuyendung@tinasoft.vn';
   const jobTitle = p.job_title || data.job_title || p.jobTitle || p.position || data.jobTitle || '';
   const sourceName = p.source || data.source || (p.candidate_name ? 'TOPCV' : 'WEBHOOK');
 
-  let cv = p.cv_text || data.cv_text || p.cvText || p.cv_content || data.cv_content || '';
-  let fetchNote = '';
+  // cv_text is produced upstream by the intake service and is guaranteed to hold
+  // the whole CV, so this workflow never downloads, parses or OCRs anything.
+  const cvText = p.cv_text || data.cv_text || p.cvText || p.cv_content || data.cv_content || '';
 
-  if (!cv && cvDownloadUrl && typeof fetch === 'function') {
-    try {
-      const response = await fetch(cvDownloadUrl, { redirect: 'follow' });
-      if (response.ok) {
-        const contentType = String(response.headers?.get?.('content-type') || '').toLowerCase();
-        const responseBuffer = await response.arrayBuffer();
-        const responseBytes = new Uint8Array(responseBuffer);
-        const fileSignature = new TextDecoder('latin1').decode(responseBytes.slice(0, 5));
+  // cv_file_url is the intake service's own short-lived file link. The executor
+  // has already downloaded and archived it by the time this runs, so the items
+  // handed over on the reserved \`remoteFiles\` input are ready for a FILES field.
+  const cvFile = p.cv_file_url || data.cv_file_url || p.cv_file || data.cv_file || p.cvfile || data.cvfile || '';
+  const cvFileName = p.cv_filename || data.cv_filename || p.cvFilename || data.cvFilename || 'cv.pdf';
+  const archivedFiles = Array.isArray(params?.remoteFiles) ? params.remoteFiles : [];
 
-        if (contentType.includes('pdf') || fileSignature === '%PDF-') {
-          cv = await extractPdfText(responseBuffer);
-          if (!cv) {
-            fetchNote = 'PDF không có lớp text (có thể là bản scan). Cần OCR trước khi AI có thể đọc CV.';
-          }
-        } else {
-          const raw = await response.text();
-          if (contentType.includes('text/') || contentType.includes('html') || contentType.includes('json')) {
-            cv = raw.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\\s+/g, ' ').trim();
-          } else {
-            fetchNote = 'File CV không phải text/PDF. Link tải CV đã được lưu nhưng AI không thể đọc nội dung trực tiếp.';
-          }
-        }
-      } else {
-        fetchNote = 'Không tải được CV từ download_url (HTTP ' + response.status + ').';
-      }
-    } catch (_) {
-      fetchNote = 'Không tải được CV từ download_url (lỗi mạng).';
-    }
-  }
-
-  if (!cv && cvDownloadUrl) {
-    cv = 'CV_DOWNLOAD_URL: ' + cvDownloadUrl;
-  }
-
-  const looksLikePdfBinary =
-    cv.includes('%PDF-') ||
-    cv.includes('JFIF') ||
-    /[\u0000-\u0008\u000B\u000C\u000E-\u001F]/.test(cv);
-
-  if (looksLikePdfBinary && !cvDownloadUrl) {
-    cv = '';
-    fetchNote = 'CV là PDF scan/hình ảnh, không có text layer. Cần OCR hoặc đọc file đính kèm để AI chấm điểm.';
-  } else if (looksLikePdfBinary && cvDownloadUrl) {
-    fetchNote = 'CV là PDF scan/hình ảnh; file đính kèm sẽ được AI đọc trực tiếp để chấm điểm.';
-    cv = 'SCANNED_CV_FILE_URL: ' + cvDownloadUrl;
-  }
-
-  cv = String(cv)
+  const mappedCvText = String(cvText)
     .replace(/[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F]/g, ' ')
     .replace(/\\s+/g, ' ')
     .trim()
@@ -311,14 +199,19 @@ const AHP_MATCHING_SOURCE = `export const main = async (params) => {
     pmEmail,
     jobId,
     applyAt,
-    cvDownloadUrl,
-    cvFile: cvFile || cvDownloadUrl,
-    cvFetchNote: fetchNote,
+    cvFile,
+    cvFileName,
+    cvFileAttachments: archivedFiles,
+    cvFetchNote: archivedFiles.length > 0
+      ? 'Đã tải và lưu file CV gốc vào trường CV File; link cv_file_url từ BE chỉ tồn tại tạm thời.'
+      : cvFile
+        ? 'Webhook có cv_file_url nhưng tải file thất bại; AI chấm điểm dựa trên cv_text.'
+        : 'Webhook không gửi cv_file_url nên không lưu được bản gốc; AI chấm điểm dựa trên cv_text.',
     mappedFullName: fullName || 'Ứng viên chưa rõ tên',
     mappedEmail: email,
     mappedPhone: phone,
     mappedJobTitle: jobTitle,
-    mappedCvText: cv
+    mappedCvText
   };
 };`;
 
@@ -691,9 +584,9 @@ export const getWorkflowTemplateLogicFunctionDefinitions = (
     },
     {
       id: ahpMatching,
-      name: 'Universal Mapper & Tải CV từ Webhook',
+      name: 'Universal Mapper & Chuẩn hóa dữ liệu CV từ Webhook',
       description:
-        'Bóc tách dữ liệu ứng viên từ Webhook tuyển dụng (TopCV / form), tải nội dung CV từ download_url và chuẩn bị dữ liệu cho bước đánh giá AHP bằng AI.',
+        'Bóc tách dữ liệu ứng viên từ Webhook tuyển dụng (TopCV / form) và map thẳng cv_text do BE cung cấp. Không tải, không parse, không OCR CV. File CV gốc được executor tải và lưu vào trường FILES trước khi chạy hàm này.',
       sourceHandlerCode: AHP_MATCHING_SOURCE,
     },
     {

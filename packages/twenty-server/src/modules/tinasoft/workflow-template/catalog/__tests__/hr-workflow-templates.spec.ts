@@ -3,8 +3,8 @@ import { HrGenerateJobDescriptionWorkflowTemplateBuilder } from 'src/modules/tin
 import { HrScheduleInterviewWorkflowTemplateBuilder } from 'src/modules/tinasoft/workflow-template/services/builders/hr-schedule-interview.builder';
 import { HrSendInterviewEmailWorkflowTemplateBuilder } from 'src/modules/tinasoft/workflow-template/services/builders/hr-send-interview-email.builder';
 import {
-    workflowActionSchema,
-    workflowTriggerSchema,
+  workflowActionSchema,
+  workflowTriggerSchema,
 } from 'twenty-shared/workflow';
 
 const hrBuilders = [
@@ -109,9 +109,13 @@ describe('HR workflow templates', () => {
       'SEND_EMAIL',
     ]);
 
-    const codeStep = definition?.steps.find(
-      ({ type }) => type === 'CODE',
-    ) as { settings?: { input?: { logicFunctionInput?: { trigger?: string } } } } | undefined;
+    const codeStep = definition?.steps.find(({ type }) => type === 'CODE') as
+      | {
+          settings?: {
+            input?: { logicFunctionInput?: Record<string, unknown> };
+          };
+        }
+      | undefined;
     expect(codeStep?.settings?.input?.logicFunctionInput?.trigger).toEqual({
       body: {
         job_id: expect.stringContaining('{{trigger.job_id}}'),
@@ -120,17 +124,34 @@ describe('HR workflow templates', () => {
         candidate_name: expect.stringContaining('{{trigger.candidate_name}}'),
         candidate_email: expect.stringContaining('{{trigger.candidate_email}}'),
         candidate_phone: expect.stringContaining('{{trigger.candidate_phone}}'),
-        download_url: expect.stringContaining('{{trigger.download_url}}'),
+        cv_file_url: expect.stringContaining('{{trigger.cv_file_url}}'),
+        cv_filename: expect.stringContaining('{{trigger.cv_filename}}'),
+        cv_text: expect.stringContaining('{{trigger.cv_text}}'),
+        pm_email: expect.stringContaining('{{trigger.pm_email}}'),
+        source: expect.stringContaining('{{trigger.source}}'),
       },
     });
+    expect(codeStep?.settings?.input?.logicFunctionInput?.remoteFiles).toEqual([
+      {
+        url: '{{trigger.cv_file_url}}',
+        filename: '{{trigger.cv_filename}}',
+        objectNameSingular: 'candidate',
+        fieldName: 'cvfile',
+      },
+    ]);
 
     const aiAgentStep = definition?.steps.find(
       ({ type }) => type === 'AI_AGENT',
     ) as
-      | { settings?: { input?: { agentId?: string; prompt?: string } } }
+      | {
+          settings?: {
+            input?: { agentId?: string; fileUrl?: string; prompt?: string };
+          };
+        }
       | undefined;
     expect(aiAgentStep?.settings?.input?.agentId).toBeDefined();
     expect(aiAgentStep?.settings?.input?.prompt).toContain('mappedCvText');
+    expect(aiAgentStep?.settings?.input?.fileUrl).toBe('');
 
     const createRecordStep = definition?.steps.find(
       ({ type }) => type === 'CREATE_RECORD',
@@ -139,10 +160,13 @@ describe('HR workflow templates', () => {
       | undefined;
     expect(createRecordStep?.settings?.input?.objectRecord).toEqual(
       expect.objectContaining({
-        cvdownloadurl: expect.stringContaining('cvDownloadUrl'),
+        cvfile: expect.stringContaining('cvFileAttachments'),
         jobid: expect.stringContaining('jobId'),
         applyat: expect.stringContaining('applyAt'),
       }),
+    );
+    expect(createRecordStep?.settings?.input?.objectRecord).not.toHaveProperty(
+      'cvdownloadurl',
     );
     expect(createRecordStep?.settings?.input?.objectRecord).toEqual(
       expect.objectContaining({
@@ -200,9 +224,9 @@ describe('HR workflow templates', () => {
         'endMinute',
       ]),
     );
-    expect(
-      formFields?.find(({ name }) => name === 'interviewDate')?.type,
-    ).toBe('DATE');
+    expect(formFields?.find(({ name }) => name === 'interviewDate')?.type).toBe(
+      'DATE',
+    );
     for (const timeField of [
       'startHour',
       'startMinute',

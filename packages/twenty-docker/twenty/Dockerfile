@@ -17,6 +17,10 @@ COPY ./packages/twenty-front-component-renderer/package.json /app/packages/twent
 COPY ./packages/twenty-sdk/package.json /app/packages/twenty-sdk/
 COPY ./packages/twenty-client-sdk/package.json /app/packages/twenty-client-sdk/
 
+# The front workspaces only declare Playwright as a dev dependency for local
+# browser tests. No stage in this image runs a browser, so never download one.
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+
 RUN yarn workspaces focus twenty twenty-front twenty-front-component-renderer twenty-ui twenty-shared twenty-sdk twenty-client-sdk && yarn cache clean && npx nx reset
 
 
@@ -95,11 +99,6 @@ RUN apk add --no-cache \
     'libcrypto3>=3.5.7-r0' \
     'libssl3>=3.5.7-r0' \
     'postgresql18-client>=18.5-r0' \
-    chromium \
-    nss \
-    freetype \
-    harfbuzz \
-    ttf-freefont \
     jq
 
 COPY ./packages/twenty-docker/twenty/entrypoint.sh /app/entrypoint.sh
@@ -109,11 +108,6 @@ WORKDIR /app/packages/twenty-server
 ARG APP_VERSION
 ENV APP_VERSION=$APP_VERSION
 ENV NODE_ENV=production
-# The system chromium above is reused through CHROMIUM_PATH, so playwright must
-# not download its own ~400MB browser bundle at install time.
-ENV CHROMIUM_PATH=/usr/bin/chromium-browser
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-ENV PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1
 
 # Workspace root config
 COPY --chown=1000 --from=twenty-server-build /app/package.json /app/yarn.lock /app/.yarnrc.yml /app/

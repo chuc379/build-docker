@@ -208,4 +208,77 @@ describe('workflow template logic functions', () => {
       }),
     ).rejects.toThrow('Thời gian kết thúc phải sau thời gian bắt đầu');
   });
+
+  it('maps the intake payload to CV text without downloading or OCRing anything', async () => {
+    const fetchSpy = jest.fn();
+    const originalFetch = globalThis.fetch;
+
+    globalThis.fetch = fetchSpy as unknown as typeof globalThis.fetch;
+
+    try {
+      const main = getLogicFunctionByName(
+        'Universal Mapper & Chuẩn hóa dữ liệu CV từ Webhook',
+      );
+
+      const result = await main({
+        remoteFiles: [
+          { fileId: 'archived-file-id', label: 'archived-file-id' },
+        ],
+        trigger: {
+          body: {
+            job_id: '123456',
+            job_title: 'Nhân viên kinh doanh',
+            candidate_name: 'Nguyễn Văn A',
+            candidate_email: 'candidate.test@example.com',
+            candidate_phone: '0901234567',
+            source: 'TOPCV',
+            cv_file_url: 'https://intake.example.com/topcv/cv/abc',
+            cv_filename: 'Nguyen-Van-A.pdf',
+            cv_text: '  Nguyễn Văn A\n\n Nhân viên kinh doanh  ',
+          },
+        },
+      });
+
+      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(result).toEqual(
+        expect.objectContaining({
+          source: 'TOPCV',
+          jobId: '123456',
+          mappedJobTitle: 'Nhân viên kinh doanh',
+          mappedFullName: 'Nguyễn Văn A',
+          mappedEmail: 'candidate.test@example.com',
+          mappedPhone: '0901234567',
+          mappedCvText: 'Nguyễn Văn A Nhân viên kinh doanh',
+          cvFile: 'https://intake.example.com/topcv/cv/abc',
+          cvFileName: 'Nguyen-Van-A.pdf',
+          cvFileAttachments: [
+            { fileId: 'archived-file-id', label: 'archived-file-id' },
+          ],
+        }),
+      );
+      expect((result as { cvFetchNote: string }).cvFetchNote).toContain(
+        'Đã tải và lưu file CV gốc',
+      );
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it('never turns a download link into CV text when the intake sends no cv_text', async () => {
+    const main = getLogicFunctionByName(
+      'Universal Mapper & Chuẩn hóa dữ liệu CV từ Webhook',
+    );
+
+    const result = (await main({
+      trigger: {
+        body: {
+          candidate_name: 'Nguyễn Văn A',
+          cv_file_url: 'https://intake.example.com/topcv/cv/abc',
+        },
+      },
+    })) as { mappedCvText: string; cvFileAttachments: unknown[] };
+
+    expect(result.mappedCvText).toBe('');
+    expect(result.cvFileAttachments).toEqual([]);
+  });
 });
