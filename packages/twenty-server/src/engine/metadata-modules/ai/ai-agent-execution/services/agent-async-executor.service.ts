@@ -491,11 +491,11 @@ export class AgentAsyncExecutorService {
         const structuredResult = await generateText({
           system: STRUCTURED_OUTPUT_SYSTEM_PROMPT,
           model: registeredModel.model,
-          prompt: `Based on the following execution results, generate the structured output according to the schema:
+          prompt: `Based on the following execution results, generate the structured output according to the JSON schema:
 
                  Execution Results: ${textResponse.text}
 
-                 Please generate the structured output based on the execution results and context above.`,
+                 Please generate the structured output as valid JSON based on the execution results and context above.`,
           output: Output.object({ schema: jsonSchema(agentSchema) }),
           providerOptions: getCallLevelProviderOptions({
             sdkPackage: registeredModel.sdkPackage,

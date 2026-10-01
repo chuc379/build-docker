@@ -39,6 +39,11 @@ const CANDIDATE_OBJECT_FIELDS = [
   },
   {
     type: FieldMetadataType.TEXT,
+    name: 'cvfile',
+    label: 'CV File',
+  },
+  {
+    type: FieldMetadataType.TEXT,
     name: 'jobid',
     label: 'TopCV Job ID',
   },

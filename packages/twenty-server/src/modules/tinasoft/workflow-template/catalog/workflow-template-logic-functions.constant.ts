@@ -245,6 +245,7 @@ const AHP_MATCHING_SOURCE = `export const main = async (params) => {
   const jobId = p.job_id || data.job_id || p.jobId || data.jobId || '';
   const applyAt = p.apply_at || data.apply_at || p.applyAt || data.applied_at || '';
   const cvDownloadUrl = p.download_url || data.download_url || p.downloadUrl || data.downloadUrl || p.cv_download_url || '';
+  const cvFile = p.cv_file_url || data.cv_file_url || p.cv_file || data.cv_file || p.cvfile || data.cvfile || '';
   const pmEmail = p.pm_email || data.pm_email || p.pmEmail || p.hr_email || 'tuyendung@tinasoft.vn';
   const jobTitle = p.job_title || data.job_title || p.jobTitle || p.position || data.jobTitle || '';
   const sourceName = p.source || data.source || (p.candidate_name ? 'TOPCV' : 'WEBHOOK');
@@ -311,6 +312,7 @@ const AHP_MATCHING_SOURCE = `export const main = async (params) => {
     jobId,
     applyAt,
     cvDownloadUrl,
+    cvFile: cvFile || cvDownloadUrl,
     cvFetchNote: fetchNote,
     mappedFullName: fullName || 'Ứng viên chưa rõ tên',
     mappedEmail: email,
