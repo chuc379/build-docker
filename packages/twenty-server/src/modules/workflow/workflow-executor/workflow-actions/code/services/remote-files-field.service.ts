@@ -1,5 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 
+import { detectPdf } from '@file-type/pdf';
+import { FileTypeParser } from 'file-type';
+
 import { isDefined } from 'twenty-shared/utils';
 
 import { FieldMetadataType } from 'twenty-shared/types';
@@ -43,6 +46,18 @@ export class RemoteFilesFieldService {
   private static readonly DOWNLOAD_TIMEOUT_MS = 15_000;
   private static readonly MAX_REMOTE_FILE_BYTES = 25 * 1024 * 1024;
   private static readonly FALLBACK_FILENAME = 'cv.pdf';
+
+  // ISO 32000 lets the `%PDF-` header sit up to 1024 bytes into the file.
+  private static readonly MAX_SIGNATURE_OFFSET = 1024;
+  private static readonly IGNORABLE_LEADING_BYTES = new Set([
+    0x00, 0x09, 0x0a, 0x0d, 0x20,
+  ]);
+
+  // Mirrors the parser used by `extractFileInfoOrThrow` so the normalization
+  // below only ever agrees with what the upload path will later detect.
+  private readonly fileTypeParser = new FileTypeParser({
+    customDetectors: [detectPdf],
+  });
 
   constructor(
     private readonly filesFieldService: FilesFieldService,
@@ -217,12 +232,49 @@ export class RemoteFilesFieldService {
     }
 
     return {
-      buffer,
+      buffer: await this.dropLeadingJunkBeforeSignature(buffer),
       filename: this.resolveFilename({
         url,
         requestedFilename,
       }),
     };
+  }
+
+  // TopCV PDFs start with a stray newline before the `%PDF-` header. ISO 32000
+  // allows the header to sit anywhere in the first 1024 bytes, but `file-type`
+  // sniffs at offset 0 only, so `extractFileInfoOrThrow` rejects the upload with
+  // INVALID_EXTENSION. Trimming the leading whitespace makes the archive agree
+  // with the PDF spec, and only ever happens when the bytes as downloaded were
+  // undetectable and the remainder is a recognised type.
+  private async dropLeadingJunkBeforeSignature(
+    buffer: Buffer,
+  ): Promise<Buffer> {
+    let junkLength = 0;
+
+    while (
+      junkLength < buffer.length &&
+      junkLength <= RemoteFilesFieldService.MAX_SIGNATURE_OFFSET &&
+      RemoteFilesFieldService.IGNORABLE_LEADING_BYTES.has(buffer[junkLength])
+    ) {
+      junkLength++;
+    }
+
+    if (junkLength === 0) {
+      return buffer;
+    }
+
+    const trimmed = buffer.subarray(junkLength);
+    const detected = await this.fileTypeParser.fromBuffer(trimmed);
+
+    if (isDefined(detected)) {
+      this.logger.warn(
+        `Dropped ${junkLength} leading whitespace byte(s) before the ${detected.mime} signature`,
+      );
+
+      return trimmed;
+    }
+
+    return buffer;
   }
 
   private resolveFilename({

@@ -26,6 +26,28 @@ const mockOkResponse = (bytes: number, contentType = 'application/pdf') =>
     arrayBuffer: async () => Buffer.alloc(bytes, 0x61),
   }) as unknown as Response;
 
+// A minimal but genuinely valid PDF body, enough for `file-type` to sniff it.
+const PDF_BODY = Buffer.from(
+  '%PDF-1.7\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF',
+  'latin1',
+);
+
+const mockPdfResponse = (buffer: Buffer) =>
+  ({
+    ok: true,
+    status: 200,
+    statusText: 'OK',
+    headers: new Map<string, string>([
+      ['content-type', 'application/pdf'],
+      ['content-length', String(buffer.length)],
+    ]),
+    arrayBuffer: async () =>
+      buffer.buffer.slice(
+        buffer.byteOffset,
+        buffer.byteOffset + buffer.byteLength,
+      ),
+  }) as unknown as Response;
+
 describe('RemoteFilesFieldService', () => {
   let service: RemoteFilesFieldService;
   let mockUploadFile: jest.Mock;
@@ -164,6 +186,90 @@ describe('RemoteFilesFieldService', () => {
       attempted: 1,
     });
     expect(mockUploadFile).not.toHaveBeenCalled();
+  });
+
+  it('trims the stray newline TopCV puts before the %PDF header', async () => {
+    const withStrayNewline = Buffer.concat([
+      Buffer.from('\n', 'latin1'),
+      PDF_BODY,
+    ]);
+
+    globalThis.fetch = jest
+      .fn()
+      .mockResolvedValue(
+        mockPdfResponse(withStrayNewline),
+      ) as unknown as typeof globalThis.fetch;
+
+    const result = await service.archiveRemoteFiles({
+      workspaceId: 'workspace-1',
+      requests: [
+        {
+          url: 'https://intake.example.com/cv/abc',
+          objectNameSingular: 'candidate',
+          fieldName: 'cvfile',
+          filename: 'Nguyen-Van-A-TopCV.pdf',
+        },
+      ],
+    });
+
+    expect(result.errors).toEqual([]);
+    expect(result.items).toEqual([
+      { fileId: 'stored-file-id', label: 'Nguyen-Van-A-TopCV.pdf' },
+    ]);
+
+    const uploaded = mockUploadFile.mock.calls[0][0].file as Buffer;
+
+    expect(uploaded.subarray(0, 5).toString('latin1')).toBe('%PDF-');
+    expect(uploaded.equals(PDF_BODY)).toBe(true);
+  });
+
+  it('leaves a clean PDF byte-for-byte untouched', async () => {
+    globalThis.fetch = jest
+      .fn()
+      .mockResolvedValue(
+        mockPdfResponse(PDF_BODY),
+      ) as unknown as typeof globalThis.fetch;
+
+    await service.archiveRemoteFiles({
+      workspaceId: 'workspace-1',
+      requests: [
+        {
+          url: 'https://intake.example.com/cv/abc',
+          objectNameSingular: 'candidate',
+          fieldName: 'cvfile',
+          filename: 'Nguyen-Van-A-TopCV.pdf',
+        },
+      ],
+    });
+
+    const uploaded = mockUploadFile.mock.calls[0][0].file as Buffer;
+
+    expect(uploaded.equals(PDF_BODY)).toBe(true);
+  });
+
+  it('does not strip anything when trimming would change the detected type', async () => {
+    // 'a.pdf' full of 0x61 is undetectable either way, so the bytes must be
+    // preserved as-is rather than risk altering an unknown format.
+    globalThis.fetch = jest
+      .fn()
+      .mockResolvedValue(
+        mockOkResponse(10),
+      ) as unknown as typeof globalThis.fetch;
+
+    await service.archiveRemoteFiles({
+      workspaceId: 'workspace-1',
+      requests: [
+        {
+          url: 'https://intake.example.com/cv/abc',
+          objectNameSingular: 'candidate',
+          fieldName: 'cvfile',
+        },
+      ],
+    });
+
+    const uploaded = mockUploadFile.mock.calls[0][0].file as Buffer;
+
+    expect(uploaded.equals(Buffer.alloc(10, 0x61))).toBe(true);
   });
 
   it('refuses a file that declares a size above the limit', async () => {
