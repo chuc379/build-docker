@@ -160,7 +160,7 @@ describe('HR workflow templates', () => {
       | undefined;
     expect(createRecordStep?.settings?.input?.objectRecord).toEqual(
       expect.objectContaining({
-        cvfile: expect.stringContaining('cvFileAttachments'),
+        cvfile: expect.stringContaining('archivedFiles'),
         jobid: expect.stringContaining('jobId'),
         applyat: expect.stringContaining('applyAt'),
       }),

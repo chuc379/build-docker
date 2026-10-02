@@ -79,7 +79,7 @@ export class HrCvIntakeMatchingWorkflowTemplateBuilder implements IWorkflowTempl
     <p>📧 Email: {{${mapperStepId}.mappedEmail}} | 📱 SĐT: {{${mapperStepId}.mappedPhone}}</p>
     <p>🎯 Điểm phù hợp: <strong style="color: #059669; font-size: 16px;">{{${calculateAhpStepId}.matchingScore}}%</strong> ({{${calculateAhpStepId}.recommendation}})</p>
     <p>📄 File CV gốc: <strong>{{${mapperStepId}.cvFileName}}</strong> (đã lưu trong hồ sơ ứng viên)</p>
-    {{${mapperStepId}.cvFetchNote}}<br/>
+    {{${mapperStepId}.remoteFilesNote}}<br/>
   </div>
   <div style="background: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
     <h4>📊 CHI TIẾT BÀI ĐÁNH GIÁ THEO MÔ HÌNH AHP:</h4>
@@ -249,15 +249,15 @@ export class HrCvIntakeMatchingWorkflowTemplateBuilder implements IWorkflowTempl
                 isLeaf: true,
                 value: 'Nguyen-Van-A.pdf',
               },
-              cvFileAttachments: {
+              archivedFiles: {
                 type: 'array',
                 label: 'Archived CV File',
                 isLeaf: true,
                 value: [{ fileId: '...', label: '...' }],
               },
-              cvFetchNote: {
+              remoteFilesNote: {
                 type: FieldMetadataType.TEXT,
-                label: 'CV Fetch Note',
+                label: 'CV File Note',
                 isLeaf: true,
                 value: '',
               },
@@ -406,7 +406,7 @@ Return only the four raw integer scores requested by the JSON schema. If the CV 
                 name: `{{${mapperStepId}.mappedFullName}}`,
                 email: `{{${mapperStepId}.mappedEmail}}`,
                 cvtext: `{{${mapperStepId}.mappedCvText}}`,
-                cvfile: `{{${mapperStepId}.cvFileAttachments}}`,
+                cvfile: `{{${mapperStepId}.archivedFiles}}`,
                 jobid: `{{${mapperStepId}.jobId}}`,
                 applyat: `{{${mapperStepId}.applyAt}}`,
                 status: 'SCREENING',

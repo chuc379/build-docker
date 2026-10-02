@@ -8,10 +8,13 @@ import { FilesFieldService } from 'src/engine/core-modules/file/files-field/serv
 import { FieldMetadataService } from 'src/engine/metadata-modules/field-metadata/services/field-metadata.service';
 import { ObjectMetadataService } from 'src/engine/metadata-modules/object-metadata/object-metadata.service';
 
-// Reserved key on a CODE step input. When present, every entry is downloaded
-// over plain HTTP and archived in the workspace storage, then replaced by the
-// `{ fileId, label }` items a FILES field expects.
+// Reserved input key on a CODE step. Its entries are downloaded over plain HTTP
+// and archived in the workspace storage before the logic function runs, so the
+// one-time intake link is consumed exactly once. The archived items and a
+// human-readable outcome are exposed on the step output by the CODE action.
 export const REMOTE_FILES_INPUT_KEY = 'remoteFiles';
+export const REMOTE_FILES_OUTPUT_KEY = 'archivedFiles';
+export const REMOTE_FILES_NOTE_OUTPUT_KEY = 'remoteFilesNote';
 
 export type RemoteFileRequest = {
   url?: unknown;
@@ -23,6 +26,12 @@ export type RemoteFileRequest = {
 export type RemoteFileItem = {
   fileId: string;
   label: string;
+};
+
+export type RemoteFilesArchiveResult = {
+  items: RemoteFileItem[];
+  errors: string[];
+  attempted: number;
 };
 
 @Injectable()
@@ -47,25 +56,30 @@ export class RemoteFilesFieldService {
   }: {
     requests: unknown;
     workspaceId: string;
-  }): Promise<RemoteFileItem[]> {
+  }): Promise<RemoteFilesArchiveResult> {
     if (!Array.isArray(requests)) {
-      return [];
+      return { items: [], errors: [], attempted: 0 };
     }
 
     const items: RemoteFileItem[] = [];
+    const errors: string[] = [];
 
     for (const request of requests) {
-      const item = await this.archiveRemoteFile({
+      const result = await this.archiveRemoteFile({
         request: request as RemoteFileRequest,
         workspaceId,
       });
 
-      if (isDefined(item)) {
-        items.push(item);
+      if (isDefined(result.item)) {
+        items.push(result.item);
+      }
+
+      if (isDefined(result.error)) {
+        errors.push(result.error);
       }
     }
 
-    return items;
+    return { items, errors, attempted: requests.length };
   }
 
   private async archiveRemoteFile({
@@ -74,7 +88,7 @@ export class RemoteFilesFieldService {
   }: {
     request: RemoteFileRequest;
     workspaceId: string;
-  }): Promise<RemoteFileItem | null> {
+  }): Promise<{ item: RemoteFileItem | null; error?: string }> {
     const url = this.toNonEmptyString(request.url);
     const objectNameSingular = this.toNonEmptyString(
       request.objectNameSingular,
@@ -82,11 +96,13 @@ export class RemoteFilesFieldService {
     const fieldName = this.toNonEmptyString(request.fieldName);
 
     if (!url || !objectNameSingular || !fieldName) {
-      this.logger.warn(
-        'Skipped remote file: url, objectNameSingular and fieldName are required',
-      );
+      const error = `missing url, objectNameSingular or fieldName (url=${
+        url ?? 'undefined'
+      })`;
 
-      return null;
+      this.logger.warn(`Could not archive remote file: ${error}`);
+
+      return { item: null, error };
     }
 
     try {
@@ -105,20 +121,23 @@ export class RemoteFilesFieldService {
         file: buffer,
         filename,
         workspaceId,
+        fieldMetadataId: fieldMetadata.id,
         fieldMetadataUniversalIdentifier: fieldMetadata.universalIdentifier,
       });
 
-      // The FILES field shows `label` to HR, so it must be the original file
-      // name, not the opaque storage id.
-      return { fileId: uploadedFile.id, label: filename };
-    } catch (error) {
-      this.logger.warn(
-        `Could not archive remote file ${url}: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
+      this.logger.log(
+        `Archived remote file ${filename} (${buffer.length} bytes) into ${objectNameSingular}.${fieldName} as ${uploadedFile.id}`,
       );
 
-      return null;
+      // The FILES field shows `label` to HR, so it must be the original file
+      // name, not the opaque storage id.
+      return { item: { fileId: uploadedFile.id, label: filename } };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+
+      this.logger.warn(`Could not archive remote file ${url}: ${message}`);
+
+      return { item: null, error: message };
     }
   }
 
@@ -151,7 +170,7 @@ export class RemoteFilesFieldService {
 
     if (fieldMetadata.type !== FieldMetadataType.FILES) {
       throw new Error(
-        `Field "${objectNameSingular}.${fieldName}" is not a FILES field`,
+        `Field "${objectNameSingular}.${fieldName}" is not a FILES field (found: ${fieldMetadata.type})`,
       );
     }
 

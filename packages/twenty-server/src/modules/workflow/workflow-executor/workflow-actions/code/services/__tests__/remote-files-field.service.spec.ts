@@ -94,9 +94,11 @@ describe('RemoteFilesFieldService', () => {
         fieldMetadataUniversalIdentifier: 'field-uid',
       }),
     );
-    expect(result).toEqual([
-      { fileId: 'stored-file-id', label: 'Nguyen-Van-A.pdf' },
-    ]);
+    expect(result).toEqual({
+      items: [{ fileId: 'stored-file-id', label: 'Nguyen-Van-A.pdf' }],
+      errors: [],
+      attempted: 1,
+    });
   });
 
   it('falls back to the file name in the URL path when none is given', async () => {
@@ -120,7 +122,7 @@ describe('RemoteFilesFieldService', () => {
     expect(mockUploadFile).toHaveBeenCalledWith(
       expect.objectContaining({ filename: 'cv-42.docx' }),
     );
-    expect(result[0].label).toBe('cv-42.docx');
+    expect(result.items[0].label).toBe('cv-42.docx');
   });
 
   it('does nothing when the step has no remote file input', async () => {
@@ -131,7 +133,7 @@ describe('RemoteFilesFieldService', () => {
         workspaceId: 'workspace-1',
         requests: undefined,
       }),
-    ).resolves.toEqual([]);
+    ).resolves.toEqual({ items: [], errors: [], attempted: 0 });
     expect(globalThis.fetch).not.toHaveBeenCalled();
     expect(mockUploadFile).not.toHaveBeenCalled();
   });
@@ -156,7 +158,11 @@ describe('RemoteFilesFieldService', () => {
           },
         ],
       }),
-    ).resolves.toEqual([]);
+    ).resolves.toEqual({
+      items: [],
+      errors: ['HTTP 403 Forbidden'],
+      attempted: 1,
+    });
     expect(mockUploadFile).not.toHaveBeenCalled();
   });
 
@@ -178,7 +184,11 @@ describe('RemoteFilesFieldService', () => {
           },
         ],
       }),
-    ).resolves.toEqual([]);
+    ).resolves.toEqual({
+      items: [],
+      errors: ['Declared size 27262976 exceeds the 26214400 bytes limit'],
+      attempted: 1,
+    });
     expect(mockUploadFile).not.toHaveBeenCalled();
   });
 
@@ -205,7 +215,11 @@ describe('RemoteFilesFieldService', () => {
           },
         ],
       }),
-    ).resolves.toEqual([]);
+    ).resolves.toEqual({
+      items: [],
+      errors: ['Field "candidate.cvfile" is not a FILES field (found: TEXT)'],
+      attempted: 1,
+    });
     expect(mockUploadFile).not.toHaveBeenCalled();
   });
 });

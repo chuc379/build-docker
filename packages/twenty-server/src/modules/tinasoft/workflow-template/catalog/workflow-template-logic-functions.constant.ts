@@ -181,12 +181,11 @@ const AHP_MATCHING_SOURCE = `export const main = async (params) => {
   // the whole CV, so this workflow never downloads, parses or OCRs anything.
   const cvText = p.cv_text || data.cv_text || p.cvText || p.cv_content || data.cv_content || '';
 
-  // cv_file_url is the intake service's own short-lived file link. The executor
-  // has already downloaded and archived it by the time this runs, so the items
-  // handed over on the reserved \`remoteFiles\` input are ready for a FILES field.
+  // cv_file_url is the intake service's own one-time link, valid for a single
+  // fetch. The CODE executor downloads and archives it before this function
+  // runs, so nothing here touches the network or the file storage.
   const cvFile = p.cv_file_url || data.cv_file_url || p.cv_file || data.cv_file || p.cvfile || data.cvfile || '';
   const cvFileName = p.cv_filename || data.cv_filename || p.cvFilename || data.cvFilename || 'cv.pdf';
-  const archivedFiles = Array.isArray(params?.remoteFiles) ? params.remoteFiles : [];
 
   const mappedCvText = String(cvText)
     .replace(/[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F]/g, ' ')
@@ -201,12 +200,6 @@ const AHP_MATCHING_SOURCE = `export const main = async (params) => {
     applyAt,
     cvFile,
     cvFileName,
-    cvFileAttachments: archivedFiles,
-    cvFetchNote: archivedFiles.length > 0
-      ? 'Đã tải và lưu file CV gốc vào trường CV File; link cv_file_url từ BE chỉ tồn tại tạm thời.'
-      : cvFile
-        ? 'Webhook có cv_file_url nhưng tải file thất bại; AI chấm điểm dựa trên cv_text.'
-        : 'Webhook không gửi cv_file_url nên không lưu được bản gốc; AI chấm điểm dựa trên cv_text.',
     mappedFullName: fullName || 'Ứng viên chưa rõ tên',
     mappedEmail: email,
     mappedPhone: phone,

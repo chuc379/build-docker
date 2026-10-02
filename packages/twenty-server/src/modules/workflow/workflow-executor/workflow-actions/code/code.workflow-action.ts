@@ -21,6 +21,9 @@ import { getUserFromAuthContext } from 'src/modules/workflow/workflow-executor/u
 import { isWorkflowCodeAction } from 'src/modules/workflow/workflow-executor/workflow-actions/code/guards/is-workflow-code-action.guard';
 import {
   REMOTE_FILES_INPUT_KEY,
+  REMOTE_FILES_NOTE_OUTPUT_KEY,
+  REMOTE_FILES_OUTPUT_KEY,
+  type RemoteFilesArchiveResult,
   RemoteFilesFieldService,
 } from 'src/modules/workflow/workflow-executor/workflow-actions/code/services/remote-files-field.service';
 import { type WorkflowCodeActionInput } from 'src/modules/workflow/workflow-executor/workflow-actions/code/types/workflow-code-action-input.type';
@@ -65,13 +68,19 @@ export class CodeWorkflowAction implements WorkflowAction {
 
     const { workspaceId } = runInfo;
 
-    const logicFunctionInput = await this.archiveRemoteFiles({
-      input: await this.embedSignatureImage({
-        input: workflowActionInput.logicFunctionInput,
-        workspaceId,
-      }),
+    const embeddedInput = await this.embedSignatureImage({
+      input: workflowActionInput.logicFunctionInput,
       workspaceId,
     });
+
+    const archivedFiles = await this.archiveRemoteFiles({
+      input: embeddedInput,
+      workspaceId,
+    });
+
+    // The reserved `remoteFiles` key is consumed here, never handed to the
+    // logic function: a mapper must not have to know about file storage.
+    const logicFunctionInput = this.stripRemoteFiles(embeddedInput);
 
     const { authContext } =
       await this.workflowExecutionContextService.getExecutionContext(runInfo);
@@ -94,34 +103,64 @@ export class CodeWorkflowAction implements WorkflowAction {
       return { error: result.error.errorMessage };
     }
 
-    return { result: result.data || {} };
+    if (archivedFiles.attempted === 0) {
+      return { result: result.data || {} };
+    }
+
+    return {
+      result: {
+        ...result.data,
+        [REMOTE_FILES_OUTPUT_KEY]: archivedFiles.items,
+        [REMOTE_FILES_NOTE_OUTPUT_KEY]:
+          this.buildRemoteFilesNote(archivedFiles),
+      },
+    };
   }
 
-  // Short-lived intake links (TopCV one-time tokens, the intake service's own
-  // cv_file_url) are dead within minutes, so the bytes are pulled once, here,
-  // and archived in the workspace storage. The logic function then only forwards
-  // the resulting `{ fileId, label }` items to the record's FILES field.
+  private stripRemoteFiles(
+    input: WorkflowCodeActionInput['logicFunctionInput'],
+  ): WorkflowCodeActionInput['logicFunctionInput'] {
+    if (!isDefined(input[REMOTE_FILES_INPUT_KEY])) {
+      return input;
+    }
+
+    const { [REMOTE_FILES_INPUT_KEY]: _remoteFiles, ...rest } = input;
+
+    return rest;
+  }
+
+  private buildRemoteFilesNote({
+    items,
+    errors,
+  }: RemoteFilesArchiveResult): string {
+    if (errors.length === 0) {
+      return `Đã lưu ${items.length} file gốc vào trường file của hồ sơ.`;
+    }
+
+    return `Không lưu được file gốc (${errors.length}/${items.length + errors.length}): ${errors.join(' | ')}.`;
+  }
+
+  // The intake link is one-time on purpose, to keep the intake service cheap, so
+  // the bytes are pulled exactly once here and archived in the workspace
+  // storage. The target field is validated before the download so a one-time
+  // link is never spent on a step that cannot store the result.
   private async archiveRemoteFiles({
     input,
     workspaceId,
   }: {
     input: WorkflowCodeActionInput['logicFunctionInput'];
     workspaceId: string;
-  }): Promise<WorkflowCodeActionInput['logicFunctionInput']> {
+  }): Promise<RemoteFilesArchiveResult> {
     const requests = input[REMOTE_FILES_INPUT_KEY];
 
     if (!isDefined(requests)) {
-      return input;
+      return { items: [], errors: [], attempted: 0 };
     }
 
-    return {
-      ...input,
-      [REMOTE_FILES_INPUT_KEY]:
-        await this.remoteFilesFieldService.archiveRemoteFiles({
-          requests,
-          workspaceId,
-        }),
-    };
+    return this.remoteFilesFieldService.archiveRemoteFiles({
+      requests,
+      workspaceId,
+    });
   }
 
   private async embedSignatureImage({

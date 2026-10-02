@@ -240,25 +240,19 @@ describe('workflow template logic functions', () => {
       });
 
       expect(fetchSpy).not.toHaveBeenCalled();
-      expect(result).toEqual(
-        expect.objectContaining({
-          source: 'TOPCV',
-          jobId: '123456',
-          mappedJobTitle: 'Nhân viên kinh doanh',
-          mappedFullName: 'Nguyễn Văn A',
-          mappedEmail: 'candidate.test@example.com',
-          mappedPhone: '0901234567',
-          mappedCvText: 'Nguyễn Văn A Nhân viên kinh doanh',
-          cvFile: 'https://intake.example.com/topcv/cv/abc',
-          cvFileName: 'Nguyen-Van-A.pdf',
-          cvFileAttachments: [
-            { fileId: 'archived-file-id', label: 'archived-file-id' },
-          ],
-        }),
-      );
-      expect((result as { cvFetchNote: string }).cvFetchNote).toContain(
-        'Đã tải và lưu file CV gốc',
-      );
+      expect(result).toEqual({
+        source: 'TOPCV',
+        pmEmail: 'tuyendung@tinasoft.vn',
+        jobId: '123456',
+        applyAt: '',
+        cvFile: 'https://intake.example.com/topcv/cv/abc',
+        cvFileName: 'Nguyen-Van-A.pdf',
+        mappedFullName: 'Nguyễn Văn A',
+        mappedEmail: 'candidate.test@example.com',
+        mappedPhone: '0901234567',
+        mappedJobTitle: 'Nhân viên kinh doanh',
+        mappedCvText: 'Nguyễn Văn A Nhân viên kinh doanh',
+      });
     } finally {
       globalThis.fetch = originalFetch;
     }
@@ -276,9 +270,8 @@ describe('workflow template logic functions', () => {
           cv_file_url: 'https://intake.example.com/topcv/cv/abc',
         },
       },
-    })) as { mappedCvText: string; cvFileAttachments: unknown[] };
+    })) as { mappedCvText: string };
 
     expect(result.mappedCvText).toBe('');
-    expect(result.cvFileAttachments).toEqual([]);
   });
 });
